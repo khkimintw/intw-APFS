@@ -4,10 +4,10 @@
 
 ## 현재 상태
 
-- 제품 기획 및 저장소 초기 설정 단계입니다.
-- 이 저장소는 시작 시점에 비어 있었습니다. 실행 가능한 앱이나 개발 명령은 아직 없습니다.
+- React + JavaScript/JSX 기반 Next.js 로컬 합성 UI scaffold를 작성했습니다. 실행·빌드 검증은 아직 하지 않았습니다.
+- 앱은 화면 내 상태만 사용하며 새로고침하면 초기화됩니다. 실제 업무 데이터를 입력하지 마세요.
 - 기존 업무 자료에는 기업·담당자 개인정보가 포함될 수 있으므로 저장소에 복사하지 않습니다.
-- Supabase 프로젝트는 준비되어 있습니다. Vercel에는 `intw-apfs` 프로젝트 쉘이 있지만 GitHub와 연결되지 않았고 아직 Production 배포가 없어 서비스 URL은 동작하지 않습니다.
+- Supabase 프로젝트는 준비되어 있습니다. Vercel Hobby 팀의 `intw-apfs` 프로젝트는 `khkimintw/intw-APFS`에 연결되어 있습니다. 현재 scaffold는 로컬에만 있으며 Production 배포와 확인된 서비스 URL은 없습니다.
 
 ## 업무 흐름
 
@@ -37,16 +37,52 @@
 
 프런트엔드는 React와 JavaScript/JSX로 구현합니다. 화면은 React 컴포넌트로 구성하고 TypeScript (`.ts`, `.tsx`)는 사용하지 않습니다. Vercel framework가 필요한 경우 Next.js의 JavaScript 구조를 사용합니다.
 
-앱 구조와 실행 명령은 저장소 현황 조사 후 결정합니다. 실행 가능한 개발 명령은 첫 애플리케이션 scaffold와 함께 이 섹션에 추가합니다. 이 프로젝트는 별도의 Supabase 프로젝트와 환경변수를 사용합니다. 비밀값은 `.env.example`, README, Git 이력에 기록하지 않습니다.
+### 로컬 개발 명령 (이번 작업에서는 실행하지 않음)
+
+Node.js 22 이상과 npm을 사용합니다. Next.js/React 버전은 package.json에 고정했습니다. 현재 의존성 설치·개발 서버·린트·빌드·테스트·브라우저 확인은 실행하지 않았습니다.
+
+```bash
+cd /home/adelie/.authentic_alpha/01_users/01_adelie/01_projects/02_intween_proj/intw-APFS
+npm install
+npm run dev
+```
+
+개발 서버는 `127.0.0.1:3001`에만 바인딩합니다. 서버와 다른 기기에서 접근하려면 승인된 비공개 접근 방식을 별도로 준비해야 합니다. Funnel이나 외부 바인딩은 설정하지 않습니다. 환경변수 없이 합성 UI를 사용할 수 있습니다. `.env.example`은 향후 별도 Supabase 프로젝트의 변수 이름·설명만 담고 있으며 앱에서 사용하지 않습니다.
+
+명시적인 검증 요청 이후에만 `npm run build`를 수행하세요. 빌드 성공 후 로컬 Production 실행 명령은 `npm run start`입니다. 테스트·린트 도구와 관련 scripts는 추가하지 않았습니다.
+
+### 현재 구현 범위와 한계
+
+관리자/합성 컨설턴트 화면, 담당 기업 필터, 컨설턴트 배정 변경, IR 직행 태그 필터, 합성 업로드 회차 중복 검토, 회차 등록/제외 시연, 방문 가능일·합성 출발지 입력, 보고 제출 상태 시연을 제공합니다. 중복 기준은 합성 기업 ID+상담 유형+회차입니다. 등록 후 같은 회차 후보는 차단됩니다. 관리자 KPI는 합성 보고 제출 건수이며 월 30건은 목표값만 표시합니다. IR 직행 태그를 선발 실적으로 세지 않습니다. 컨설턴트 화면에는 KPI·정산·전체 기업을 표시하지 않지만 역할 전환은 인증·보안 통제가 아닙니다. 단가·정산 금액·연락처는 코드에 넣지 않았습니다.
+
+- `app/`: 한국어 루트 레이아웃·페이지·반응형 스타일.
+- `components/`: 화면과 접근성 레이블을 포함한 공통 UI 컴포넌트.
+- `modules/demo.js`: 이 제품만의 합성 데이터. 다른 저장소와 데이터·환경변수를 공유하지 않습니다.
+- 인증·서버 API·Supabase SDK/DB/Storage/RLS·파일 업로드/파싱·외부 AI/API·문서 변환/다운로드·영구 저장은 미구현입니다. 브라우저 저장소에도 저장하지 않습니다.
+- Google Sheets·지도·사업자번호 조회·정산 등 외부 업무 연동은 없으며 승인받지 않은 외부 쓰기를 제공하지 않습니다.
+- 키·개인정보·내부 자료를 입력하거나 저장소에 복사하지 마세요. 검색엔진 noindex 메타데이터는 접근 통제가 아닙니다.
+
 
 ## 저장소와 배포
 
-- GitHub: [intween/intw-APFS](https://github.com/intween/intw-APFS) (소유자는 개인 계정 `intween`)
+- Vercel 배포 저장소: [khkimintw/intw-APFS](https://github.com/khkimintw/intw-APFS) (현재 Public)
+- 백업 저장소: [intween/intw-APFS](https://github.com/intween/intw-APFS)
 - Supabase project ref: `crxdsuwutniahwfmmyxf` (서울 리전)
-- Vercel 프로젝트: [intw-apfs 대시보드](https://vercel.com/intween-temp/intw-apfs), Hobby (`intween_temp` 팀)
-- GitHub 앱 연결과 자동 배포는 저장소 소유자 `intween` 계정이 권한을 설정한 뒤 구성합니다.
-- 현재 production deployment가 없어 서비스 URL은 아직 없습니다. 첫 배포가 완료되면 실제 URL을 여기에 추가합니다.
+- Vercel 프로젝트: [intw-apfs 대시보드](https://vercel.com/intween-temp/intw-apfs), Hobby (`intween_temp` 팀). Git 연결 완료, 기본 브랜치는 `main`입니다.
+- 서버 저장소의 `origin`은 fetch를 `intween/intw-APFS`에서 하고 `git push origin`은 `khkimintw/intw-APFS`와 `intween/intw-APFS` 모두에 보냅니다. 두 저장소의 브랜치 tip을 맞춰 유지하세요.
+- Vercel Production 배포는 앱 scaffold 후 성공해야 URL이 작동합니다. 현재 배포 URL은 아직 활성화되지 않았습니다.
+- 배포용 GitHub 저장소가 Public이므로 개인정보, IR 원문, 정산 정보, 비밀값, 실제 고객 자료는 커밋하지 않습니다.
 
 ## 개발 참여
 
 작업 전 `PLAN.md`, `AGENTS.md`, 현재 브랜치와 변경사항을 확인하세요. 개인정보나 원문 업무 자료를 추가하지 말고, 검토 가능한 작은 변경 단위로 작업합니다. 빌드·린트 명령은 프로젝트 설정이 만들어진 뒤 이 README에 명시합니다.
+
+
+## 배포 전제조건 · 현재 배포하지 않음
+
+- Vercel 설정 후보: Framework `Next.js`, Root Directory 저장소 루트, Build Command `npm run build`, Output Directory 프레임워크 기본값. 아직 설정 변경·빌드 성공·배포를 확인하지 않았습니다.
+- Vercel 기본 도메인과 실제 서비스 URL은 Production 배포가 성공한 뒤 대시보드에서 확인합니다. 현재 URL을 추측하거나 정상 작동한다고 표시하지 않습니다.
+- Hobby 내부 비상업 범위와 무료 한도, 저장소/production branch `main`, 환경변수 적용 범위, 접근 통제·공개 범위 및 롤백 절차를 확인하고 외부 공개 직전 사용자 승인을 받습니다. 유료 전환/애드온을 사용하지 않습니다.
+- Supabase는 기존 프로젝트를 유지합니다. 현재 DB 연결·migration은 없으며 실제 연동 전 서버 인증/인가·RLS·private Storage를 설계하고 별도 승인받아야 합니다.
+- main push는 외부 공개를 유발할 수 있습니다. 현재 commit/push/PR/Actions 변경/preview/Production/터널 공개는 하지 않았습니다.
+- 자체 코드 검토만 수행했습니다. 테스트·빌드·린트·개발 서버·`git diff --check`는 실행하지 않았으므로 실행 결과를 보증하지 않습니다.
