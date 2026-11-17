@@ -1,2 +1,2 @@
-import Workspace from '../components/Workspace';
-export default function Page() { return <Workspace />; }
+import AuthApp from '../components/AuthApp';
+export default function Page() { return <AuthApp />; }
