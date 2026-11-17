@@ -35,7 +35,9 @@
 
 ## 기술 및 실행 방법
 
-앱 구조와 스택은 저장소 현황 조사 후 결정합니다. 실행 가능한 개발 명령은 첫 애플리케이션 scaffold와 함께 이 섹션에 추가합니다. 이 프로젝트는 별도의 Supabase 프로젝트와 환경변수를 사용합니다. 비밀값은 `.env.example`, README, Git 이력에 기록하지 않습니다.
+프런트엔드는 React와 JavaScript/JSX로 구현합니다. 화면은 React 컴포넌트로 구성하고 TypeScript (`.ts`, `.tsx`)는 사용하지 않습니다. Vercel framework가 필요한 경우 Next.js의 JavaScript 구조를 사용합니다.
+
+앱 구조와 실행 명령은 저장소 현황 조사 후 결정합니다. 실행 가능한 개발 명령은 첫 애플리케이션 scaffold와 함께 이 섹션에 추가합니다. 이 프로젝트는 별도의 Supabase 프로젝트와 환경변수를 사용합니다. 비밀값은 `.env.example`, README, Git 이력에 기록하지 않습니다.
 
 ## 저장소와 배포
 
