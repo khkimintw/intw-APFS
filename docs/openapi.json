@@ -1,0 +1,854 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "APFS 업무 API",
+    "version": "1.0.0-local",
+    "description": "로컬 서버 구현 계약. 실제 DB hardening 초안은 별도 승인 전 미적용. 역할/범위 규칙은 API-CONTRACT.md 참조. raw PII/원문메모 응답 제외. 요청 JSON 최대32KB. 분산 rate limit 미구현."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "userBearer": []
+    }
+  ],
+  "paths": {
+    "/me": {
+      "get": {
+        "summary": "GET /me",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        }
+      }
+    },
+    "/companies": {
+      "get": {
+        "summary": "GET /companies",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /companies",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "summary": "GET /companies/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "summary": "PATCH /companies/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /companies/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/companies/{id}/sessions": {
+      "get": {
+        "summary": "GET /companies/{id}/sessions",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "POST /companies/{id}/sessions",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/{id}": {
+      "get": {
+        "summary": "GET /sessions/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "summary": "PATCH /sessions/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /sessions/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/profiles": {
+      "get": {
+        "summary": "GET /profiles",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        }
+      }
+    },
+    "/profiles/{id}": {
+      "patch": {
+        "summary": "PATCH /profiles/{id}",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit": {
+      "get": {
+        "summary": "GET /audit",
+        "security": [
+          {
+            "userBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공: data와 requestId"
+          },
+          "400": {
+            "description": "허용되지 않은 필드/유효하지 않은 입력"
+          },
+          "401": {
+            "description": "로그인 필요 또는 만료된 세션"
+          },
+          "403": {
+            "description": "승인·활성·역할 권한 부족"
+          },
+          "404": {
+            "description": "없거나 접근할 수 없는 대상"
+          },
+          "409": {
+            "description": "중복 또는 참조 충돌"
+          },
+          "413": {
+            "description": "32KB 초과 요청"
+          },
+          "503": {
+            "description": "Auth/DB 연결 또는 스키마 미준비"
+          }
+        },
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "userBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Supabase user JWT"
+      }
+    },
+    "schemas": {
+      "CompanyInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "business_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "theme": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "presentation_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "cooperation_level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "report_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "intake_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "reapplicant": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "business_summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "program_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2000,
+            "maximum": 2200
+          },
+          "assigned_consultant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ir_direct": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProfileInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "role": {
+            "enum": [
+              "host",
+              "admin",
+              "user"
+            ]
+          },
+          "user_kind": {
+            "enum": [
+              "consultant",
+              "client"
+            ]
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SessionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "kind": {
+            "enum": [
+              "diagnosis",
+              "consulting"
+            ]
+          },
+          "round_number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "scheduled_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "remote": {
+            "type": "boolean"
+          },
+          "report_status": {
+            "enum": [
+              "미제출",
+              "작성 중",
+              "검토 중",
+              "제출 완료"
+            ]
+          },
+          "report_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          }
+        }
+      }
+    }
+  }
+}

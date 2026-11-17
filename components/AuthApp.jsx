@@ -1,65 +1,95 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { apiRequest } from '../modules/api';
 import Workspace from './Workspace';
 
 export default function AuthApp() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [capabilities, setCapabilities] = useState({ departureBase: false, audit: true });
   const [busy, setBusy] = useState(true);
   const [mode, setMode] = useState('login');
   const [message, setMessage] = useState('');
   const [form, setForm] = useState({ email: '', password: '', name: '' });
+  const requestSequence = useRef(0);
+  const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
 
   async function loadProfile(nextSession) {
+    const sequence = ++requestSequence.current;
     setSession(nextSession);
     if (!nextSession) { setProfile(null); setBusy(false); return; }
     setBusy(true);
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', nextSession.user.id).maybeSingle();
-    setProfile(error ? null : data);
-    setMessage(error ? '사용자 프로필을 불러오지 못했습니다. 데이터베이스 설정을 확인해 주세요.' : '');
-    setBusy(false);
+    try {
+      const response = await apiRequest(nextSession, '/me', { includeMeta: true });
+      const data = response.data;
+      if (sequence !== requestSequence.current) return;
+      setProfile(data); setCapabilities({ audit: true, ...response.capabilities }); setMessage('');
+    } catch (error) {
+      if (sequence !== requestSequence.current) return;
+      setProfile(null); setMessage(error.message);
+    } finally { if (sequence === requestSequence.current) setBusy(false); }
   }
   useEffect(() => {
+    if (!supabase) { setBusy(false); return; }
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => { if (alive) loadProfile(data.session); });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => { if (alive) loadProfile(next); });
-    return () => { alive = false; listener.subscription.unsubscribe(); };
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!alive) return;
+      if (error) { setMessage('로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.'); setBusy(false); }
+      else loadProfile(data.session);
+    }).catch(() => { if (alive) { setMessage('인증 서버에 연결하지 못했습니다.'); setBusy(false); } });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
+      // 인증 콜백 안에서 다른 인증 요청을 대기하지 않습니다.
+      setTimeout(() => { if (alive) loadProfile(next); }, 0);
+    });
+    return () => { alive = false; ++requestSequence.current; listener.subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
     if (!session || !profile || profile.approved || !profile.active) return;
+    const controller = new AbortController();
     const timer = setInterval(async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-      if (data?.approved || data?.active === false) setProfile(data);
-    }, 5000);
-    return () => clearInterval(timer);
+      try {
+        const data = await apiRequest(session, '/me', { signal: controller.signal });
+        if (!controller.signal.aborted) setProfile(data);
+      } catch (error) { if (error.name !== 'AbortError' && !controller.signal.aborted) setMessage(error.message); }
+    }, 10000);
+    return () => { clearInterval(timer); controller.abort(); };
   }, [session, profile?.approved, profile?.active]);
 
   async function googleSignIn() {
+    if (!googleEnabled || !supabase) return;
     setBusy(true); setMessage('');
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
-    if (error) { setMessage(`Google 로그인을 시작할 수 없습니다. Supabase Auth의 Google 공급자 설정을 확인하세요. ${error.message}`); setBusy(false); }
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+      if (error) { setMessage('Google 로그인을 시작하지 못했습니다. 관리자에게 공급자 설정 확인을 요청해 주세요.'); setBusy(false); }
+    } catch { setMessage('Google 인증 서버에 연결하지 못했습니다.'); setBusy(false); }
   }
-
-  async function submit(e) {
-    e.preventDefault(); setBusy(true); setMessage('');
-    const result = mode === 'login'
-      ? await supabase.auth.signInWithPassword({ email: form.email, password: form.password })
-      : await supabase.auth.signUp({ email: form.email, password: form.password, options: { data: { name: form.name } } });
-    if (result.error) { setMessage(result.error.message); setBusy(false); return; }
-    if (mode === 'signup' && !result.data.session) setMessage('가입 확인 이메일을 보냈습니다. 이메일 인증을 마치면 로그인할 수 있습니다.');
-    else if (mode === 'signup') setMessage('계정이 생성되었습니다. 관리자 승인 뒤 업무 메뉴를 이용할 수 있습니다.');
-    setBusy(false);
+  async function submit(event) {
+    event.preventDefault(); if (!supabase) return;
+    setBusy(true); setMessage('');
+    try {
+      const result = mode === 'login'
+        ? await supabase.auth.signInWithPassword({ email: form.email.trim(), password: form.password })
+        : await supabase.auth.signUp({ email: form.email.trim(), password: form.password, options: { data: { name: form.name.trim() } } });
+      if (result.error) { setMessage(mode === 'login' ? '로그인하지 못했습니다. 이메일·비밀번호 또는 계정 승인 상태를 확인해 주세요.' : '가입을 완료하지 못했습니다. 입력 형식과 이메일 수신함을 확인해 주세요.'); return; }
+      setForm(value => ({ ...value, password: '' }));
+      if (mode === 'signup' && !result.data.session) setMessage('가입 확인 이메일을 확인해 주세요. 이메일 인증 후 관리자 승인이 필요합니다.');
+      else if (mode === 'signup') setMessage('계정이 생성되었습니다. 관리자 승인 뒤 업무 메뉴를 이용할 수 있습니다.');
+      if (result.data.session) await loadProfile(result.data.session);
+    } catch { setMessage('인증 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
+    finally { setBusy(false); }
   }
-
-  if (busy) return <div className="auth-screen"><div className="auth-card">연결 상태를 확인하고 있습니다…</div></div>;
-  if (session && profile?.active && profile?.approved) return <Workspace supabase={supabase} session={session} profile={profile} onProfile={setProfile} onSignOut={() => supabase.auth.signOut()} />;
-  if (session && !profile) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark">i</div><h1>계정 권한 확인 중</h1><p>프로필이 생성되지 않았습니다. Supabase 마이그레이션이 적용되었는지 확인하세요.</p><button onClick={() => supabase.auth.signOut()}>로그아웃</button></div></div>;
-  if (session && profile && !profile.approved) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark">i</div><span className="eyebrow">ACCOUNT REVIEW</span><h1>가입 승인 대기 중입니다</h1><p>관리자가 계정을 승인하고 경영체 또는 컨설턴트 권한을 지정하면 업무 화면을 이용할 수 있습니다.</p><button onClick={() => supabase.auth.signOut()}>로그아웃</button></div></div>;
-  if (session && profile && !profile.active) return <div className="auth-screen"><div className="auth-card"><div className="brand-mark">i</div><h1>사용 중지된 계정입니다</h1><p>관리자에게 계정 활성화를 요청해 주세요.</p><button onClick={() => supabase.auth.signOut()}>로그아웃</button></div></div>;
+  const signOut = async () => { if (supabase) await supabase.auth.signOut(); setSession(null); setProfile(null); setMessage(''); };
+  if (!supabase) return <AuthCard title="연결 설정이 필요합니다"><p>이 배포의 Supabase URL과 publishable key가 아직 설정되지 않았습니다. 관리자가 프로젝트 전용 공개 연결값을 설정해야 로그인할 수 있습니다.</p></AuthCard>;
+  if (busy) return <AuthCard title="연결 상태 확인 중"><p role="status">잠시 기다려 주세요.</p></AuthCard>;
+  if (session && profile?.active && profile?.approved) return <Workspace session={session} profile={profile} onProfile={setProfile} onSignOut={signOut} capabilities={capabilities} />;
+  if (session && !profile) return <AuthCard title="계정 권한 확인이 필요합니다"><p role="alert">{message || '프로필을 확인하지 못했습니다. 관리자에게 계정 설정 확인을 요청해 주세요.'}</p><button onClick={() => loadProfile(session)}>다시 확인</button><button onClick={signOut}>로그아웃</button></AuthCard>;
+  if (session && profile && !profile.active) return <AuthCard title="사용 중지된 계정입니다"><p>관리자에게 계정 활성화를 요청해 주세요.</p><button onClick={signOut}>로그아웃</button></AuthCard>;
+  if (session && profile && !profile.approved) return <AuthCard title="가입 승인 대기 중입니다"><p>관리자가 계정을 승인하고 업무 역할과 배정 범위를 지정하면 업무 화면을 이용할 수 있습니다.</p>{message && <p role="status">{message}</p>}<button onClick={() => loadProfile(session)}>승인 상태 새로고침</button><button onClick={signOut}>로그아웃</button></AuthCard>;
   return <main className="auth-screen"><section className="auth-card"><div className="brand-mark">i</div><span className="eyebrow">INTWEEN · AGRI PROGRAM</span><h1>농금원 업무 플랫폼</h1><p className="muted">사업 운영 현황과 컨설팅 기록을 한곳에서 관리합니다.</p>
-    <div className="auth-tabs"><button className={mode==='login'?'active':''} onClick={()=>{setMode('login');setMessage('');}}>로그인</button><button className={mode==='signup'?'active':''} onClick={()=>{setMode('signup');setMessage('');}}>계정 만들기</button></div>
-    <form onSubmit={submit} className="auth-form">{mode==='signup'&&<label>이름<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoComplete="name"/></label>}<label>이메일<input type="email" required value={form.email} onChange={e=>setForm({...form,email:e.target.value})} autoComplete="email"/></label><label>비밀번호<input type="password" required minLength={8} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} autoComplete={mode==='login'?'current-password':'new-password'}/></label><button className="primary full" disabled={busy}>{busy?'잠시만요…':mode==='login'?'로그인':'계정 만들기'}</button></form>
-    <div className="auth-divider"><span>또는</span></div><button type="button" className="google-button" onClick={googleSignIn} disabled={busy}><strong>G</strong> Google로 계속하기</button>
-    {message&&<p className="form-message" role="status">{message}</p>}<p className="fine-print">권한은 관리자·컨설턴트·경영체별로 구분됩니다. 경영체 계정은 배정된 회사 자료만 열 수 있습니다.</p></section></main>;
+    <div className="auth-tabs"><button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setMessage(''); }}>로그인</button><button className={mode === 'signup' ? 'active' : ''} onClick={() => { setMode('signup'); setMessage(''); }}>계정 만들기</button></div>
+    <form onSubmit={submit} className="auth-form">{mode === 'signup' && <label>업무 표시명 (실명 대신 별칭)<input required maxLength={60} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoComplete="off" /></label>}<label>로그인 이메일<input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} autoComplete="email" /></label><label>비밀번호<input type="password" required minLength={8} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} /></label><button className="primary full" disabled={busy}>{mode === 'login' ? '로그인' : '가입 신청'}</button></form>
+    <div className="auth-divider"><span>또는</span></div><button type="button" className="google-button" onClick={googleSignIn} disabled={!googleEnabled || busy}><strong>G</strong> {googleEnabled ? 'Google로 계속하기' : 'Google 로그인 · 공급자 설정 대기'}</button>
+    {message && <p className="form-message" role="status">{message}</p>}<p className="fine-print">로그인 이메일은 인증에만 사용합니다. 업무 화면에는 개인 연락처·주소·개인이메일을 표시하지 않습니다. 신규 계정은 관리자 승인 전 자료에 접근할 수 없습니다.</p></section></main>;
 }
+function AuthCard({ title, children }) { return <main className="auth-screen"><section className="auth-card"><div className="brand-mark">i</div><h1>{title}</h1>{children}</section></main>; }
