@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { SUPABASE_URL, SUPABASE_KEY } from '../lib/public-config';
 import { supabase } from '../lib/supabase';
 import { apiRequest } from '../modules/api';
 import Workspace from './Workspace';
@@ -13,7 +14,23 @@ export default function AuthApp() {
   const [message, setMessage] = useState('');
   const [form, setForm] = useState({ email: '', password: '', name: '' });
   const requestSequence = useRef(0);
-  const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+  const googleAppEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+  const [googleProvider, setGoogleProvider] = useState('checking');
+  const googleEnabled = googleAppEnabled && googleProvider === 'enabled';
+  useEffect(() => {
+    if (!supabase) return;
+    const controller = new AbortController();
+    let alive = true;
+    const timer = setTimeout(() => controller.abort(), 8000);
+    fetch(SUPABASE_URL + '/auth/v1/settings', {
+      headers: { apikey: SUPABASE_KEY }, signal: controller.signal, cache: 'no-store'
+    }).then(async response => {
+      if (!response.ok) throw new Error('settings unavailable');
+      const settings = await response.json();
+      if (alive) setGoogleProvider(settings.external?.google === true ? 'enabled' : 'disabled');
+    }).catch(() => { if (alive) setGoogleProvider('unavailable'); }).finally(() => clearTimeout(timer));
+    return () => { alive = false; controller.abort(); clearTimeout(timer); };
+  }, []);
 
   async function loadProfile(nextSession) {
     const sequence = ++requestSequence.current;
@@ -89,7 +106,8 @@ export default function AuthApp() {
   return <main className="auth-screen"><section className="auth-card"><div className="brand-mark">i</div><span className="eyebrow">INTWEEN · AGRI PROGRAM</span><h1>농금원 업무 플랫폼</h1><p className="muted">사업 운영 현황과 컨설팅 기록을 한곳에서 관리합니다.</p>
     <div className="auth-tabs"><button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setMessage(''); }}>로그인</button><button className={mode === 'signup' ? 'active' : ''} onClick={() => { setMode('signup'); setMessage(''); }}>계정 만들기</button></div>
     <form onSubmit={submit} className="auth-form">{mode === 'signup' && <label>업무 표시명 (실명 대신 별칭)<input required maxLength={60} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoComplete="off" /></label>}<label>로그인 이메일<input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} autoComplete="email" /></label><label>비밀번호<input type="password" required minLength={8} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} /></label><button className="primary full" disabled={busy}>{mode === 'login' ? '로그인' : '가입 신청'}</button></form>
-    <div className="auth-divider"><span>또는</span></div><button type="button" className="google-button" onClick={googleSignIn} disabled={!googleEnabled || busy}><strong>G</strong> {googleEnabled ? 'Google로 계속하기' : 'Google 로그인 · 공급자 설정 대기'}</button>
+    <div className="auth-divider"><span>또는</span></div><button type="button" className="google-button" onClick={googleSignIn} disabled={!googleEnabled || busy}><strong>G</strong> {googleEnabled ? 'Google로 계속하기' : 'Google 로그인 · 준비 대기'}</button>
+    <p className="fine-print" role="status">Google 앱 사용 설정: {googleAppEnabled ? '켜짐' : '꺼짐'}. Supabase Google 공급자: {({ checking: '확인 중', enabled: '활성', disabled: '비활성', unavailable: '확인 실패' })[googleProvider]}. 두 설정이 모두 활성일 때 로그인할 수 있습니다.{!googleEnabled && ' 이메일 로그인을 이용해 주세요.'}</p>
     {message && <p className="form-message" role="status">{message}</p>}<p className="fine-print">로그인 이메일은 인증에만 사용합니다. 업무 화면에는 개인 연락처·주소·개인이메일을 표시하지 않습니다. 신규 계정은 관리자 승인 전 자료에 접근할 수 없습니다.</p></section></main>;
 }
 function AuthCard({ title, children }) { return <main className="auth-screen"><section className="auth-card"><div className="brand-mark">i</div><h1>{title}</h1>{children}</section></main>; }

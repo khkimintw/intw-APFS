@@ -101,3 +101,11 @@ npm run dev
 최종 순서는 계정·프로젝트 확인 → 기존 DB 복원 지점 확보 → 이메일 확인된 khkim UUID 대조/최초 host 지정 → 새 API/UI와 hardening 동시 전환 → 승인된 합성 계정으로 운영 JWT/RLS 실증입니다. 기존 235/156 행 삭제나 재적재는 필요하지 않습니다. 실패 시 쓰기를 중지하고 버전/정책 스냅샷으로 복구하며, DB 전체 삭제·reset은 하지 않습니다.
 
 Vercel은 기존 intw-apfs 프로젝트와 main 연결을 유지합니다. 이번 로컬 변경은 push하지 않았으며 새 배포가 아닙니다. 공개 범위·접근 보호·Hobby 한도와 롤백을 확인하고 배포 직전 승인을 받아야 합니다. 새 무료 프로젝트 생성·요금제 변경·유료 add-on·Funnel 공개는 하지 않습니다. Service role key는 서버에도 필요하지 않습니다.
+
+### Google 로그인 설정 구분 (2026-11-17)
+
+확인된 프로젝트 `crxdsuwutniahwfmmyxf`의 공개 Auth settings는 `external.google=false`, `external.email=true`입니다. 스크린샷의 비활성 버튼은 앱 빌드 토글 `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED`에 의해 잠겨 있었습니다. 이 토글은 Supabase 공급자를 활성화하지 않습니다. 이제 버튼은 앱 토글과 `/auth/v1/settings`의 실제 `external.google=true`가 모두 충족되어야 활성화되며, 확인 실패도 비활성으로 처리합니다.
+
+소유자가 Google Cloud의 **OAuth Web application Client ID/secret**을 **Supabase Auth > Providers > Google**에 직접 설정하고 Google 공급자를 활성화해야 합니다. Google에 등록할 승인된 redirect URI는 `https://crxdsuwutniahwfmmyxf.supabase.co/auth/v1/callback`입니다. 앱의 Site URL/Redirect URLs는 Supabase URL Configuration에서 별도로 검토합니다. 공급자 설정과 공개 settings 확인이 끝난 뒤에만 앱 토글을 true로 빌드합니다. 이 작업에서는 자격 증명을 만들거나 공급자·인증·RLS 정책을 변경하지 않습니다.
+
+Client secret 등 비밀값은 저장소, Vercel `NEXT_PUBLIC_*` 변수, 채팅에 절대 넣지 마세요. Client ID/secret의 설정 위치는 Supabase 공급자 콘솔입니다. 이메일 로그인은 계속 이용할 수 있습니다. 참고: [Supabase Google 설정 문서](https://supabase.com/docs/guides/auth/social-login/auth-google).
