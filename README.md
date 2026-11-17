@@ -7,7 +7,7 @@
 - 제품 기획 및 저장소 초기 설정 단계입니다.
 - 이 저장소는 시작 시점에 비어 있었습니다. 실행 가능한 앱이나 개발 명령은 아직 없습니다.
 - 기존 업무 자료에는 기업·담당자 개인정보가 포함될 수 있으므로 저장소에 복사하지 않습니다.
-- Supabase와 Vercel 리소스는 준비되어 있으나, GitHub 저장소 연결과 배포는 접근 권한을 확인한 뒤 진행합니다.
+- Supabase 프로젝트는 준비되어 있습니다. Vercel에는 `intw-apfs` 프로젝트 쉘이 있지만 GitHub와 연결되지 않았고 아직 Production 배포가 없어 서비스 URL은 동작하지 않습니다.
 
 ## 업무 흐름
 
@@ -39,11 +39,11 @@
 
 ## 저장소와 배포
 
-- GitHub: [intween/intw-APFS](https://github.com/intween/intw-APFS)
+- GitHub: [intween/intw-APFS](https://github.com/intween/intw-APFS) (소유자는 개인 계정 `intween`)
 - Supabase project ref: `crxdsuwutniahwfmmyxf` (서울 리전)
-- 배포 계정: Vercel Hobby (`intween_temp` 팀)
-- GitHub 앱 연결과 자동 배포는 저장소 소유자의 권한 설정이 끝난 뒤 구성합니다.
-- 서비스 주소는 첫 배포가 완료되면 여기에 추가합니다.
+- Vercel 프로젝트: [intw-apfs 대시보드](https://vercel.com/intween-temp/intw-apfs), Hobby (`intween_temp` 팀)
+- GitHub 앱 연결과 자동 배포는 저장소 소유자 `intween` 계정이 권한을 설정한 뒤 구성합니다.
+- 현재 production deployment가 없어 서비스 URL은 아직 없습니다. 첫 배포가 완료되면 실제 URL을 여기에 추가합니다.
 
 ## 개발 참여
 
