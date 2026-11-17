@@ -5,10 +5,10 @@
 ## 현재 상태
 
 - React + JavaScript/JSX 기반 Next.js 합성 UI MVP를 작성했습니다. alphagpu에서 `npm ci`와 `npm run build`가 성공했습니다. 테스트·린트·브라우저 검증은 실행하지 않았습니다.
-- 현재 커밋은 `47c2f22`입니다. GitHub `main` push 후 Vercel 자동 Production 배포가 실패했습니다. 원인은 대시보드 Build Logs 확인이 필요합니다.
+- Vercel `main` 자동 Production 배포가 성공했습니다. 해당 앱은 합성 데이터 데모이며 실제 업무 인증·DB 저장은 미구현입니다.
 - 앱은 화면 내 상태만 사용하며 새로고침하면 초기화됩니다. 실제 업무 데이터를 입력하지 마세요.
 - 기존 업무 자료에는 기업·담당자 개인정보가 포함될 수 있으므로 저장소에 복사하지 않습니다.
-- Supabase 프로젝트는 준비되어 있습니다. Vercel Hobby 팀의 `intw-apfs` 프로젝트는 `khkimintw/intw-APFS`에 연결되어 있습니다. 앱 코드는 Public GitHub 저장소에 push됐습니다. Vercel Production 배포는 실패 상태이며 확인된 서비스 URL은 없습니다.
+- Supabase 프로젝트는 준비되어 있습니다. Vercel Hobby 팀의 `intw-apfs` 프로젝트는 `khkimintw/intw-APFS`에 연결되어 있습니다. 앱 코드는 Public GitHub 저장소에 push됐고 Vercel Production 배포가 성공했습니다. 서비스 주소는 [https://intw-apfs-git-main-intween-temp.vercel.app/](https://intw-apfs-git-main-intween-temp.vercel.app/)이며 Vercel Authentication으로 보호됩니다.
 
 ## 업무 흐름
 
@@ -71,7 +71,7 @@ npm run dev
 - Supabase project ref: `crxdsuwutniahwfmmyxf` (서울 리전)
 - Vercel 프로젝트: [intw-apfs 대시보드](https://vercel.com/intween-temp/intw-apfs), Hobby (`intween_temp` 팀). Git 연결 완료, 기본 브랜치는 `main`입니다.
 - 서버 저장소의 `origin`은 fetch를 `intween/intw-APFS`에서 하고 `git push origin`은 `khkimintw/intw-APFS`와 `intween/intw-APFS` 모두에 보냅니다. 두 저장소의 브랜치 tip을 맞춰 유지하세요.
-- React 앱 scaffold는 준비됐지만 Vercel Production 배포가 실패했습니다. 현재 정상 작동하는 서비스 URL은 없습니다.
+- React 앱 scaffold의 Vercel Production 배포가 성공했습니다. 접속 주소는 [https://intw-apfs-git-main-intween-temp.vercel.app/](https://intw-apfs-git-main-intween-temp.vercel.app/)이며 Vercel Authentication 로그인이 필요합니다.
 - 배포용 GitHub 저장소가 Public이므로 개인정보, IR 원문, 정산 정보, 비밀값, 실제 고객 자료는 커밋하지 않습니다.
 
 ## 개발 참여
@@ -79,12 +79,13 @@ npm run dev
 작업 전 `PLAN.md`, `AGENTS.md`, 현재 브랜치와 변경사항을 확인하세요. 개인정보나 원문 업무 자료를 추가하지 말고, 검토 가능한 작은 변경 단위로 작업합니다. 빌드·린트 명령은 프로젝트 설정이 만들어진 뒤 이 README에 명시합니다.
 
 
-## 배포 상태 · Vercel 자동 배포 실패
+## 배포 상태 · Vercel Production 배포 완료
 
-- Vercel 설정 후보: Framework `Next.js`, Root Directory 저장소 루트, Build Command `npm run build`, Output Directory 프레임워크 기본값. 실제 대시보드 설정은 재확인하지 않았습니다.
-- `main` 커밋 `47c2f22`의 자동 배포가 실패했습니다. [Vercel 배포 로그](https://vercel.com/intween-temp/intw-apfs/8gpbgsoawyyEwrHAUcWXzAUBfQBb)를 열어 실패 상세를 확인해야 합니다. 로그인된 대시보드 Build Logs 내용은 아직 확인할 수 없었습니다.
-- Vercel 기본 도메인과 실제 서비스 URL은 Production 배포가 성공한 뒤 대시보드에서 확인합니다. 현재 URL을 추측하거나 정상 작동한다고 표시하지 않습니다.
+- 저장소 루트의 `vercel.json`에서 framework `nextjs`, Build Command `npm run build`, Output Directory `.next`를 명시해 Vercel 프로젝트의 기존 `public` 출력 폴더 설정을 덮어씁니다.
+- Vercel Production 주소: [https://intw-apfs-git-main-intween-temp.vercel.app/](https://intw-apfs-git-main-intween-temp.vercel.app/). HTTP 요청은 Vercel 로그인으로 이동하므로 Vercel Authentication 보호가 적용된 상태입니다. 접근 권한이 있는 Vercel 팀 사용자로 로그인해야 합니다.
+- 이전 실패 배포 로그: [Vercel 배포 로그](https://vercel.com/intween-temp/intw-apfs/8gpbgsoawyyEwrHAUcWXzAUBfQBb)에서 확인할 수 있습니다. 당시 Next.js 빌드는 성공했으나 출력 디렉터리를 `public`으로 찾던 설정이 원인이었습니다.
+- 배포된 앱은 Vercel Authentication으로 보호됩니다. `intw-ax.vercel.app`/`intw-apfs.vercel.app` 기본 별칭은 설정되지 않았고, 위의 `git-main` 주소를 사용합니다. alphagpu의 직접 공개 URL은 아직 없습니다.
 - Hobby 내부 비상업 범위와 무료 한도, 저장소/production branch `main`, 환경변수 적용 범위, 접근 통제·공개 범위 및 롤백 절차를 확인하고 외부 공개 직전 사용자 승인을 받습니다. 유료 전환/애드온을 사용하지 않습니다.
 - Supabase는 기존 프로젝트를 유지합니다. 현재 DB 연결·migration은 없으며 실제 연동 전 서버 인증/인가·RLS·private Storage를 설계하고 별도 승인받아야 합니다.
-- 이번 커밋은 `khkimintw` 배포 저장소와 `intween` 백업 저장소 양쪽에 push됐습니다. Vercel Production 배포는 실패해 정상 URL은 아직 활성화되지 않았습니다. alphagpu 외부 공개 설정은 하지 않았습니다.
-- `npm ci`와 `npm run build`는 alphagpu에서 성공했습니다. 테스트·린트·개발 서버·브라우저 확인·`git diff --check`는 실행하지 않았습니다. Vercel 배포 실패 원인과 온라인 Production URL은 확인되지 않았습니다.
+- 현재 앱과 README는 `khkimintw` 배포 저장소와 `intween` 백업 저장소 양쪽 `main`에 push됐습니다. Vercel Production 배포는 성공했습니다. alphagpu 외부 공개 설정은 하지 않았습니다.
+- `npm ci`와 `npm run build`는 alphagpu에서 성공했고, Vercel Production 배포도 성공했습니다. 테스트·린트·개발 서버·브라우저에서 로그인 후 화면 확인·`git diff --check`는 실행하지 않았습니다. 실제 업무 인증과 Supabase 연동은 없습니다.
