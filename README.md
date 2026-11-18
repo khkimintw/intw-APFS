@@ -31,6 +31,7 @@
 - `lib/public-config.js`에는 URL과 공개 publishable key fallback이 있고 `lib/supabase.js`는 인증 클라이언트를 만듭니다. 필요하면 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`로 덮어쓸 수 있습니다.
 - 로그인 설정: Supabase Auth Site URL을 `https://intw-apfs-git-main-intween-temp.vercel.app`로 지정하고 이 주소 및 `https://alphagpu.tail98287a.ts.net:8443`를 Redirect URLs에 추가하세요. Google Cloud OAuth의 승인된 redirect URI는 `https://crxdsuwutniahwfmmyxf.supabase.co/auth/v1/callback`이며, Google 공급자 활성화에 필요한 Client ID/Secret은 Supabase Auth 설정 화면에 직접 입력합니다.
 - RLS 정책과 private helper 함수는 migration으로 적용했습니다. 공개 저장소에 사용자 데이터·비밀 키를 커밋하지 않습니다.
+- 빈 2026 HWP 보고 양식 3종은 사용 편의를 위해 public/report-templates/에 포함합니다. 저장소가 공개이므로 파일도 누구나 직접 내려받을 수 있습니다. 작성 완료된 보고서나 개인정보가 들어간 문서는 이 폴더에 올리지 마세요.
 
 ## 개발
 
