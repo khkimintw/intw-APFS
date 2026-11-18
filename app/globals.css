@@ -41,3 +41,35 @@
 @media(max-width:1180px){.company-layout{grid-template-columns:minmax(0,1fr) 220px;gap:12px}.company-layout>.surface:first-child{padding:16px}}
 @media(max-width:900px){.company-layout{grid-template-columns:minmax(0,1fr)}.company-help{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}.company-help .eyebrow,.company-help h3,.company-help>p,.company-help .guide-note{grid-column:1/-1}.guide-item{padding:8px 0}}
 @media(max-width:720px){.company-layout .export-box{align-items:stretch;flex-direction:column}.company-layout .export-fields{justify-content:flex-start}.company-help{grid-template-columns:1fr}.company-help .eyebrow,.company-help h3,.company-help>p,.company-help .guide-note{grid-column:auto}}
+
+/* APFS company list — Figma 03-admin-company-list information architecture.
+   Neutral shell (light-gray nav, white top bar, light-gray body), dense list card, cream guide panel. */
+:root{--fg-bg:#f3f4f6;--fg-nav:#f4f5f7;--fg-line:#e5e7eb;--fg-ink:#1f2329;--fg-sub:#6b7280;--fg-blue:#3b6fe0}
+body{background:var(--fg-bg)}
+.sidebar{background:var(--fg-nav);border-right:1px solid var(--fg-line)}
+.side-link.selected{background:#fff;color:var(--fg-ink);box-shadow:0 0 0 1px var(--fg-line)}
+.topbar{background:#fff;border-bottom:1px solid var(--fg-line)}
+.company-layout .list-card{padding:18px 20px;border-color:var(--fg-line);box-shadow:none;border-radius:8px}
+.list-card .section-head{margin-bottom:12px}.list-card .section-head h2{font-size:15px;margin:0}.list-card .section-head p{margin:2px 0 0;font-size:11px}
+.filter-bar{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;margin-bottom:10px}
+.filter-bar>*{min-width:0}
+.filter-search{flex:1 1 200px;min-width:130px;border:1px solid #d9dde3;border-radius:6px;background:#fff;padding:8px 10px;font-size:12px}
+.filter-bar select{flex:0 1 112px;border:1px solid #d9dde3;border-radius:6px;background:#fff;padding:8px 6px;font-size:12px;max-width:140px}
+.filter-submit{flex:none;padding:8px 16px;font-size:12px;background:var(--fg-blue);border-color:var(--fg-blue)}
+.ghost-button{flex:none;border:1px solid #d9dde3;border-radius:6px;background:#fff;padding:8px 12px;font-size:12px;color:var(--fg-sub)}
+.list-tools{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-bottom:10px}
+.chip{border:1px solid #d9dde3;border-radius:16px;background:#fff;padding:6px 12px;font-size:11px;color:var(--fg-sub);min-height:32px}
+.chip.on{background:#eaf0fd;border-color:var(--fg-blue);color:#2c56b8;font-weight:600}
+.export-tool{flex:0 1 auto}.export-tool summary{list-style:none;cursor:pointer;border:1px solid #d9dde3;border-radius:6px;background:#fff;padding:6px 12px;font-size:11px;color:var(--fg-ink);min-height:32px;display:inline-flex;align-items:center}
+.export-tool summary::-webkit-details-marker{display:none}.export-tool summary::after{content:'▾';margin-left:6px;color:var(--fg-sub)}.export-tool[open] summary::after{content:'▴'}
+.export-tool[open]{flex:1 1 100%;order:3}
+.export-tool .export-box{margin:8px 0 0;padding:10px 12px;border:1px solid var(--fg-line);border-radius:7px;background:#fafbfc;display:grid;gap:8px}
+.list-tools .list-controls{margin:0 0 0 auto;gap:8px 12px;font-size:11px}.list-tools .list-controls select{padding:6px 8px;font-size:11px}
+.company-table td b{display:block;font-size:12px;color:var(--fg-ink)}.company-table td small{display:flex;align-items:center;gap:6px;color:var(--fg-sub);font-size:10px}
+.company-table th,.company-table td{padding:9px 10px}.company-table .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ir-tag{background:#eaf0fd;color:#2c56b8;border-radius:10px;padding:0 6px;font-size:9px;font-weight:600}
+.pill.blue{background:#eaf0fd;color:#2c56b8}
+.company-layout .table-wrap tbody tr:hover{background:#fafbfc}
+.company-help{background:#fffaf3;border-color:#f1e6d6}
+@media(max-width:900px){.filter-bar{flex-wrap:wrap}.filter-bar select{flex:1 1 130px;max-width:none}.filter-search{flex:1 1 100%}.list-tools .list-controls{margin-left:0;flex:1 1 100%}}
+@media(max-width:720px){.filter-submit,.ghost-button,.chip,.export-tool summary{min-height:44px}.filter-bar select,.filter-search{min-height:44px}}
