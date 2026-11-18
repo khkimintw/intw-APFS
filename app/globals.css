@@ -7,3 +7,37 @@
 /* P1: existing workspace extensions; no remote fonts or data added. */
 .skip-link{position:absolute;left:12px;top:-100px;background:white;padding:12px;z-index:30}.skip-link:focus{top:12px}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.mobile-nav,.mobile-signout{display:none}.checkbox-label{display:flex!important;align-items:center;gap:7px;font-size:11px;white-space:nowrap}.session-card{padding:16px;margin:12px 0;border:1px solid var(--line);border-radius:8px;background:#fff}.session-card-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}.session-card-head strong{font-size:13px}.session-card-head small{color:var(--muted);font-size:10px}.session-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.session-edit-grid label{display:grid;gap:5px;font-size:11px;color:#63788a}.session-edit-grid input,.session-edit-grid select,.session-edit-grid textarea{width:100%;border:1px solid #dbe3e8;border-radius:6px;background:white;padding:8px 10px;min-width:0;font-size:12px}.session-edit-grid input[type=checkbox]{width:auto}.session-edit-grid textarea{resize:vertical}.session-card-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}.session-card-actions button{font-size:11px;padding:7px 11px}.session-card-actions .danger-button{color:#9d4540}.audit-list{list-style:none;padding:0;max-height:350px;overflow:auto}.audit-list li{padding:10px 0;border-bottom:1px solid var(--line);font-size:11px}.audit-list b,.audit-list span,.audit-list time{display:block}.audit-list span,.audit-list time{color:var(--muted);font-size:10px}.missing-list{font-size:11px;line-height:1.8;padding-left:18px}.table-tools{flex-wrap:wrap}.auth-card>button{margin:8px 8px 0 0;border:1px solid #dbe3e8;background:white;border-radius:6px;padding:8px 12px}.table-wrap caption{text-align:left}.session-form button:disabled{opacity:.5}.stat-grid+.alert{margin-top:0}.form-grid input[type=checkbox]{width:auto}.fine-print{overflow-wrap:anywhere}
 @media(max-width:720px){.mobile-nav{display:flex;gap:4px;overflow:auto;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}.mobile-nav .side-link{display:flex;white-space:nowrap;margin:0;padding:8px 10px;width:auto;font-size:12px}.mobile-nav .side-link span{font-size:14px;width:auto}.mobile-signout{display:block}.session-card{padding:12px}.session-edit-grid{grid-template-columns:1fr}.session-edit-grid .span-two{grid-column:auto}.top-actions{font-size:11px}.sidebar .logo{padding:0}.table-tools input{min-width:130px}}
+.list-controls{display:flex;flex-wrap:wrap;gap:10px 14px;margin:0 0 12px;font-size:11px}.list-controls label,.export-fields label{display:flex;align-items:center;gap:6px;color:var(--muted)}.list-controls select,.export-fields input{border:1px solid #dbe3e8;border-radius:6px;background:#fff;padding:9px 10px;min-width:0}.export-fields input{width:96px}
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;font-size:12px}.pager-buttons{display:flex;align-items:center;gap:6px}.pager-buttons button{min-height:36px;min-width:36px;border:1px solid #dbe3e8;border-radius:6px;background:#fff;padding:0 10px}
+.export-box{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:10px}.export-box p{margin:2px 0 0;font-size:11px}.export-fields{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.progress-box{display:flex;flex-direction:column;gap:6px;margin:10px 0;font-size:11px;color:var(--muted)}.progress-box progress{width:100%;height:8px;accent-color:var(--blue)}
+@media(max-width:720px){.list-controls label,.export-fields label{flex:1 1 140px}.list-controls select,.export-fields input{flex:1;width:100%}.export-fields .primary{flex:1 1 100%;min-height:44px}.pager{justify-content:center}.pager-buttons button{min-height:44px;min-width:44px}}
+
+/* APFS company-list layout follows the latest Figma frame. */
+.company-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+.company-layout>.surface:first-child{min-width:0;padding:20px 22px}
+.company-help{position:sticky;top:16px;padding:20px 18px;background:#fffaf6;border-color:#f1e8e0}
+.company-help h3{margin:5px 0 8px;font-size:15px;color:#1f2329}
+.company-help>p{font-size:11px;line-height:1.65;margin:0 0 17px;color:#6b7280}
+.guide-item{padding:12px 0;border-top:1px solid #eadfd6}
+.guide-item b,.guide-item span{display:block}
+.guide-item b{font-size:11px;color:#1f2329;margin-bottom:4px}
+.guide-item span,.guide-note{font-size:10px;line-height:1.6;color:#6b7280}
+.guide-note{padding:10px;background:#fff;border-radius:6px}
+.company-toolbar-controls{padding:10px 12px;background:#f7f8fa;border:1px solid #e5e7eb;border-radius:7px;margin:0 0 12px}
+.company-layout .export-box{margin:0 0 12px;padding:11px 12px;border:1px solid #e5e7eb;border-radius:7px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff}
+.company-layout .export-box>div:first-child{flex:1;min-width:200px}
+.company-layout .export-box>div:first-child>b{font-size:12px;color:#1f2329}
+.company-layout .export-box p{font-size:10px;line-height:1.5}
+.company-layout .export-fields{justify-content:flex-end;gap:8px}
+.company-layout .export-fields label{font-size:10px}
+.company-layout .export-fields input{width:70px;padding:7px}
+.company-layout .export-fields .primary{padding:8px 12px;font-size:11px;background:#3b6fe0;border-color:#3b6fe0}
+.company-layout .table-wrap{border:1px solid #e5e7eb;border-radius:7px}
+.company-layout .table-wrap th{background:#f1f3f6;color:#586171;font-size:10px}
+.company-layout .table-wrap td{font-size:11px;border-bottom:1px solid #e5e7eb}
+.company-layout .table-wrap tr:last-child td{border-bottom:0}
+.company-layout .table-wrap .pill{font-size:9px}
+@media(max-width:1180px){.company-layout{grid-template-columns:minmax(0,1fr) 220px;gap:12px}.company-layout>.surface:first-child{padding:16px}}
+@media(max-width:900px){.company-layout{grid-template-columns:minmax(0,1fr)}.company-help{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}.company-help .eyebrow,.company-help h3,.company-help>p,.company-help .guide-note{grid-column:1/-1}.guide-item{padding:8px 0}}
+@media(max-width:720px){.company-layout .export-box{align-items:stretch;flex-direction:column}.company-layout .export-fields{justify-content:flex-start}.company-help{grid-template-columns:1fr}.company-help .eyebrow,.company-help h3,.company-help>p,.company-help .guide-note{grid-column:auto}}

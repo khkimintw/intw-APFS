@@ -1,10 +1,13 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiRequest } from '../modules/api';
+import { buildCompanyXlsx, downloadBlob, resolveRange } from '../modules/exportXlsx';
 import { canEditSessions, isAdmin, REPORT_STATUSES, sessionError, sessionLabel } from '../modules/workflow';
 
 const blank = { business_name: '', theme: '', presentation_date: '', program_year: String(new Date().getFullYear()), business_summary: '', assigned_consultant_id: '', status: '배정 대기', cooperation_level: '', report_status: '미제출', ir_direct: false };
 const roleLabels = { host: '소유자(host)', admin: '관리자', user: '사용자' };
+const PAGE_SIZES = [10, 20, 30, 40, 50, 'all'];
+const SORTS = { name: ['경영체명', c => c.business_name], theme: ['테마', c => c.theme], year: ['사업연도', c => c.program_year], status: ['진행 상태', c => c.status], report: ['보고 상태', c => c.report_status] };
 const statusOptions = ['배정 대기', '진단 대기', '컨설팅 진행', '보고서 검토', '완료'];
 const auditActions = { INSERT: '생성', UPDATE: '수정', DELETE: '삭제', insert: '생성', update: '수정', delete: '삭제' };
 function Pill({ children, tone = '' }) { return <span className={`pill ${tone}`}>{children}</span>; }
@@ -19,10 +22,27 @@ export default function Workspace({ session, profile, onSignOut, capabilities = 
   const [error, setError] = useState(''), [toast, setToast] = useState(''), [auditMessage, setAuditMessage] = useState('');
   const [editing, setEditing] = useState(null), [form, setForm] = useState(blank);
   const [sessionForm, setSessionForm] = useState({ kind: 'consulting', round_number: 1, scheduled_on: '' });
+  const [pageSize, setPageSize] = useState(10), [page, setPage] = useState(1), [sortKey, setSortKey] = useState('name'), [sortDir, setSortDir] = useState('asc');
+  const [rangeStart, setRangeStart] = useState(''), [rangeEnd, setRangeEnd] = useState('');
+  const [exportState, setExportState] = useState(null), [exportError, setExportError] = useState('');
   const detailSequence = useRef(0), mutationLock = useRef(false);
   const peopleById = useMemo(() => Object.fromEntries(people.map(person => [person.id, person])), [people]);
   const selected = companies.find(company => company.id === selectedId) || companies[0];
   const visible = companies.filter(company => (theme === '전체' || company.theme === theme) && (!directOnly || company.ir_direct) && `${company.business_name} ${company.theme || ''} ${company.status || ''}`.toLowerCase().includes(search.toLowerCase()));
+  const sorted = useMemo(() => {
+    const pick = SORTS[sortKey][1], direction = sortDir === 'asc' ? 1 : -1;
+    return [...visible].sort((a, b) => {
+      const x = pick(a), y = pick(b);
+      if (x == null || x === '') return y == null || y === '' ? 0 : 1; // 빈 값은 항상 마지막
+      if (y == null || y === '') return -1;
+      return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'ko', { numeric: true })) * direction;
+    });
+  }, [visible, sortKey, sortDir]);
+  const totalPages = pageSize === 'all' ? 1 : Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = pageSize === 'all' ? sorted : sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const pageFrom = sorted.length ? (pageSize === 'all' ? 1 : (currentPage - 1) * pageSize + 1) : 0, pageTo = pageSize === 'all' ? sorted.length : Math.min(sorted.length, currentPage * pageSize);
+  useEffect(() => { setPage(1); }, [search, theme, directOnly, sortKey, sortDir, pageSize]);
   const themes = useMemo(() => ['전체', ...new Set(companies.map(company => company.theme).filter(Boolean))], [companies]);
   const currentSessions = loadedCompany === selected?.id ? sessions : [];
   const missingReports = currentSessions.filter(item => item.report_status !== '제출 완료');
@@ -73,6 +93,19 @@ export default function Workspace({ session, profile, onSignOut, capabilities = 
   function pick(company) { setSelectedId(company.id); setSection('detail'); setError(''); }
   function startCreate() { if (!admin) return; setForm({ ...blank }); setEditing('new'); }
   function startEdit(company) { if (!admin) return; setForm(Object.fromEntries(Object.keys(blank).map(key => [key, company[key] ?? blank[key]]))); setEditing(company.id); }
+  async function exportXlsx() {
+    if (exportState) return;
+    setExportError('');
+    const range = resolveRange(sorted.length, rangeStart, rangeEnd);
+    if (range.error) { setExportError(range.error); return; }
+    setExportState({ phase: '준비 중', done: 0, total: range.to - range.from + 1 });
+    try {
+      const blob = await buildCompanyXlsx(sorted, { ...range, resolveConsultant: company => peopleById[company.assigned_consultant_id]?.display_name || (company.assigned_consultant_id ? '배정됨' : '미배정'), onProgress: setExportState });
+      downloadBlob(blob, `경영체목록_${new Date().toISOString().slice(0, 10)}_${range.from}-${range.to}.xlsx`);
+      setToast(`${(range.to - range.from + 1).toLocaleString()}행을 XLSX로 내보냈습니다.`);
+    } catch { setExportError('XLSX 파일을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
+    finally { setExportState(null); }
+  }
   async function saveCompany(event) {
     event.preventDefault(); if (!admin) return;
     const payload = { ...form, business_name: form.business_name.trim(), program_year: form.program_year ? Number(form.program_year) : null, assigned_consultant_id: form.assigned_consultant_id || null };
@@ -122,7 +155,15 @@ export default function Workspace({ session, profile, onSignOut, capabilities = 
       {section === 'overview' && <><div className="welcome-card"><div><span className="eyebrow light">INTWEEN · AGRI SUPPORT</span><h2>{admin ? '사업 진행 상황을 확인하세요' : '내 배정 기업의 업무를 이어가세요'}</h2><p>개인 연락처·주소·개인이메일을 표시하지 않는 업무 화면입니다.</p><button className="light-button" onClick={() => setSection('companies')}>경영체 목록 보기 <span>→</span></button></div><div className="welcome-art" aria-hidden="true"><div className="art-circle circle-a"/><div className="art-circle circle-b"/><span>農</span></div></div>
         {admin && <><div className="stat-grid"><Stat label="전체 경영체" value={busy ? '—' : stats.total} note="조회 가능한 전체 업무자료"/><Stat label="확인 필요" value={busy ? '—' : stats.waiting} note="배정·진행 상태 확인"/><Stat label="진행 중" value={busy ? '—' : stats.consulting} note="경영체 상태 기준"/><Stat label="완료·제출" value={busy ? '—' : stats.done} note="경영체 상태 기준 / 회차 실적과 별개"/></div><div className="alert info">사업 목표: 진단 90건 · 맞춤형 컨설팅 330건 · IR 15건 · 월 30건 페이스. 아래 현황은 경영체 상태 집계이며 목표 달성 실적을 대신하지 않습니다.</div></>}
         <div className="dashboard-grid"><section className="surface"><div className="section-head"><div><h2>{admin ? '등록 경영체' : '내 배정 기업'}</h2><p>경영체를 선택하면 회차와 방문 일정을 확인합니다.</p></div><button className="text-button" onClick={() => setSection('companies')}>전체 보기 →</button></div><CompanyTable rows={companies.slice(0, 7)} peopleById={peopleById} onPick={pick} empty={!busy}/></section><aside className="surface quick-panel"><h2>빠른 업무</h2><p>자주 사용하는 업무 메뉴입니다.</p><button className="quick-action" onClick={() => setSection('companies')}><span className="quick-icon">▦</span><span><b>경영체 목록</b><small>배정 기업과 진행 상태</small></span><span className="arrow">→</span></button><button className="quick-action" disabled={!selected} onClick={() => selected && pick(selected)}><span className="quick-icon green">◷</span><span><b>회차별 일정·보고</b><small>방문 가능일과 미제출 상태</small></span><span className="arrow">→</span></button>{admin && <button className="quick-action" onClick={() => setSection('users')}><span className="quick-icon purple">♙</span><span><b>사용자 승인·권한</b><small>승인·활성·업무 범위</small></span><span className="arrow">→</span></button>}<div className="source-note"><span>i</span><p>승인된 업무자료만 사용합니다. 지도·AI·사업자 조회·정산 공급자는 연결하지 않았습니다.</p></div></aside></div></>}
-      {section === 'companies' && <section className="surface"><div className="section-head"><div><h2>{admin ? '경영체 목록' : '내 배정 기업'}</h2><p>{companies.length.toLocaleString()}개 · 검색 결과 {visible.length.toLocaleString()}개</p></div><div className="table-tools"><input value={search} onChange={event => setSearch(event.target.value)} placeholder="경영체명·상태 검색" aria-label="경영체 검색"/><select value={theme} onChange={event => setTheme(event.target.value)} aria-label="테마 필터">{themes.map(value => <option key={value}>{value}</option>)}</select><label className="checkbox-label"><input type="checkbox" checked={directOnly} onChange={event => setDirectOnly(event.target.checked)}/>IR 직행</label></div></div><CompanyTable rows={visible} peopleById={peopleById} onPick={pick} empty={!busy}/>{busy && <p role="status">목록을 불러오는 중입니다.</p>}</section>}
+      {section === 'companies' && <div className="company-layout"><section className="surface" aria-busy={busy}><div className="section-head"><div><h2>{admin ? '경영체 목록' : '내 배정 기업'}</h2><p>{companies.length.toLocaleString()}개 · 검색 결과 {sorted.length.toLocaleString()}개</p></div><div className="table-tools"><input value={search} onChange={event => setSearch(event.target.value)} placeholder="경영체명·상태 검색" aria-label="경영체 검색"/><select value={theme} onChange={event => setTheme(event.target.value)} aria-label="테마 필터">{themes.map(value => <option key={value}>{value}</option>)}</select></div></div>
+        <div className="list-controls company-toolbar-controls"><label>정렬<select value={sortKey} onChange={event => setSortKey(event.target.value)}>{Object.entries(SORTS).map(([key, [label]]) => <option key={key} value={key}>{label}</option>)}</select></label><label>순서<select value={sortDir} onChange={event => setSortDir(event.target.value)}><option value="asc">오름차순</option><option value="desc">내림차순</option></select></label><label>페이지당<select value={pageSize} onChange={event => setPageSize(event.target.value === 'all' ? 'all' : Number(event.target.value))}>{PAGE_SIZES.map(value => <option key={value} value={value}>{value === 'all' ? '전체' : `${value}개`}</option>)}</select></label></div>
+        {busy && <div className="progress-box" role="status"><progress aria-label="경영체 목록 불러오는 중"/><span>경영체 목록을 불러오는 중입니다. 데이터가 많으면 시간이 걸릴 수 있습니다.</span></div>}
+        <form className="export-box" onSubmit={event => { event.preventDefault(); exportXlsx(); }}><div><b>XLSX 내보내기</b><p>현재 검색·필터·정렬이 적용된 {sorted.length.toLocaleString()}행이 대상입니다. 행 범위를 비워 두면 전체를 내보냅니다. 연락처·주소·개인이메일·주민번호·생년월일은 포함되지 않습니다.</p></div><div className="export-fields"><label className="checkbox-label"><input type="checkbox" checked={directOnly} onChange={event => setDirectOnly(event.target.checked)}/>IR 직행만</label><label>시작 행<input type="number" inputMode="numeric" min="1" max={sorted.length || undefined} value={rangeStart} onChange={event => setRangeStart(event.target.value)} placeholder="1" disabled={!!exportState}/></label><label>끝 행<input type="number" inputMode="numeric" min="1" max={sorted.length || undefined} value={rangeEnd} onChange={event => setRangeEnd(event.target.value)} placeholder={sorted.length ? String(sorted.length) : ''} disabled={!!exportState}/></label><button className="primary" disabled={busy || !sorted.length || !!exportState}>{exportState ? '생성 중…' : 'XLSX 내보내기'}</button></div>
+          {exportState && <div className="progress-box" role="status"><progress max={exportState.total || 1} value={exportState.done} aria-label="XLSX 생성 진행률"/><span>{exportState.phase} · {exportState.done.toLocaleString()} / {exportState.total.toLocaleString()}행</span></div>}
+          {exportError && <div className="alert error" role="alert">{exportError}</div>}</form>
+        <CompanyTable rows={pageRows} peopleById={peopleById} onPick={pick} empty={!busy}/>
+        <nav className="pager" aria-label="경영체 목록 페이지"><span aria-live="polite">{sorted.length ? `${pageFrom.toLocaleString()}–${pageTo.toLocaleString()} / ${sorted.length.toLocaleString()}행` : '표시할 행 없음'}</span>{pageSize !== 'all' && <div className="pager-buttons"><button disabled={currentPage <= 1} onClick={() => setPage(1)} aria-label="첫 페이지">«</button><button disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>이전</button><span>{currentPage} / {totalPages}</span><button disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>다음</button><button disabled={currentPage >= totalPages} onClick={() => setPage(totalPages)} aria-label="마지막 페이지">»</button></div>}</nav>
+</section><aside className="surface company-help"><span className="eyebrow">WORKSPACE GUIDE</span><h3>화면 설명</h3><p>경영체 업무정보를 검색하고 담당자·상태별로 확인합니다.</p><div className="guide-item"><b>검색·필터</b><span>경영체명과 테마를 입력하면 목록에 바로 반영됩니다. IR 직행만 모아 볼 수도 있습니다.</span></div><div className="guide-item"><b>진행 상태</b><span>진단·컨설팅·보고서 진행 상태를 확인하고 상세 화면에서 회차를 관리합니다.</span></div><div className="guide-item"><b>목록·엑셀</b><span>페이지당 개수를 선택하고 검색된 자료를 전체 또는 행 범위로 내려받습니다.</span></div><div className="guide-note">내보내기 파일에는 개인 연락처와 주소 등 민감한 정보가 포함되지 않습니다.</div></aside></div>}
       {section === 'detail' && selected && <div className="detail-grid"><section className="surface"><div className="section-head"><div><button className="back-link" onClick={() => setSection('companies')}>← 경영체 목록</button><h2>{selected.business_name}</h2><p>{selected.theme || '테마 미입력'} · {selected.program_year || '연도 미입력'}년 사업 {selected.ir_direct && <Pill>IR 직행 태그</Pill>}</p></div>{admin && <div className="inline-actions"><button disabled={mutationBusy} onClick={() => startEdit(selected)}>정보 수정</button><button className="danger-button" disabled={mutationBusy} onClick={() => removeCompany(selected)}>삭제</button></div>}</div><div className="detail-facts"><Fact label="담당 컨설턴트" value={peopleById[selected.assigned_consultant_id]?.display_name || (selected.assigned_consultant_id ? '배정됨' : '미배정')}/><Fact label="협조도" value={selected.cooperation_level}/><Fact label="회사 보고 상태" value={selected.report_status}/></div>{selected.business_summary && <div className="summary-box"><b>경영체 개요</b><p>{selected.business_summary}</p></div>}
         <div className="section-head compact"><div><h3>상담·방문 회차</h3><p>진단 1회 · 컨설팅 최대 3회. 기존 4회차 기록은 보존하며 조회·수정할 수 있습니다.</p></div><button className="text-button" disabled={detailBusy || mutationBusy} onClick={() => refreshDetail(selected.id)}>회차 새로고침</button></div>
         {editor && <form className="session-form" onSubmit={addSession}><label className="sr-only" htmlFor="new-session-kind">상담 유형</label><select id="new-session-kind" value={sessionForm.kind} onChange={event => setSessionForm({ ...sessionForm, kind: event.target.value, round_number: 1 })}><option value="diagnosis">기업 진단</option><option value="consulting">맞춤형 컨설팅</option></select><label className="sr-only" htmlFor="new-session-round">등록 회차</label><select id="new-session-round" value={sessionForm.round_number} onChange={event => setSessionForm({ ...sessionForm, round_number: Number(event.target.value) })}>{(sessionForm.kind === 'diagnosis' ? [1] : [1, 2, 3]).map(value => <option key={value} value={value}>{value}회</option>)}</select><label className="sr-only" htmlFor="new-session-date">방문 가능일</label><input id="new-session-date" type="date" value={sessionForm.scheduled_on} onChange={event => setSessionForm({ ...sessionForm, scheduled_on: event.target.value })}/><button className="primary" disabled={mutationBusy || detailBusy || loadedCompany !== selected.id}>새 회차 등록</button></form>}
