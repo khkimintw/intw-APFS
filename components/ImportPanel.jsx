@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiRequest } from '../modules/api';
 import { IMPORT_LIMITS, FIELD_LABELS, buildImportPreview, parseCsv } from '../modules/companyImport';
 
@@ -44,7 +44,10 @@ export default function ImportPanel({ session, companies, onDone }) {
   const [error, setError] = useState('');
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyError, setHistoryError] = useState('');
   const lock = useRef(false);
+  useEffect(() => { let active=true; apiRequest(session, '/companies/import-history').then(rows => { if(active)setHistory(rows||[]); }).catch(() => { if(active)setHistoryError('최근 등록 이력을 불러오지 못했습니다.'); }); return () => { active=false; }; }, [session]);
 
   function downloadTemplate() {
     const csv = '\uFEFF기업명,사업자등록번호,설립연도,테마,사업연도,발표일정,접수주차,상태,구분\r\n';
@@ -85,7 +88,7 @@ export default function ImportPanel({ session, companies, onDone }) {
       }
       setResult(total); setState({ phase: 'done' });
     } catch (problem) { setError(`${problem.message} (이미 처리된 ${total.inserted.toLocaleString()}건은 등록되었습니다. 목록을 새로고침해 확인하세요.)`); setState({ phase: 'idle' }); }
-    finally { lock.current = false; try { await onDone?.(); } catch { /* list refresh is best effort */ } }
+    finally { lock.current = false; try { await onDone?.(); } catch { /* list refresh is best effort */ } try { setHistory(await apiRequest(session, '/companies/import-history')||[]); setHistoryError(''); } catch { setHistoryError('최근 등록 이력을 새로고침하지 못했습니다.'); } }
   }
 
   const busy = state.phase === 'reading' || state.phase === 'importing';
@@ -112,6 +115,7 @@ export default function ImportPanel({ session, companies, onDone }) {
       {state.phase === 'importing' && <div className="progress-box" role="status"><progress max={progress.total || 1} value={progress.done} aria-label="가져오기 진행률"/><span>등록 중 · {progress.done.toLocaleString()} / {progress.total.toLocaleString()}건 ({IMPORT_LIMITS.batchRows}건씩 전송)</span></div>}
       <div className="import-actions"><button className="primary" onClick={run} disabled={busy || !state.counts.new}>{state.phase === 'importing' ? '등록 중…' : `신규 ${state.counts.new}건 등록`}</button><button type="button" className="ghost-button" onClick={() => setState({ phase: 'idle' })} disabled={busy}>취소</button></div>
     </>}
-    {state.phase === 'done' && result && <div className="alert info" role="status">완료: 접수 {result.received}건 · 등록 <b>{result.inserted}</b>건 · 중복 건너뜀 {result.skipped_duplicate}건 · 오류 {result.invalid}건. 기업 목록에서 확인하세요.</div>}
+    {state.phase === 'done' && result && <div className="alert info" role="status">완료: 접수 {result.received}건 · 등록 <b>{result.inserted}</b>건 · 중복 건너뜀 {result.skipped_duplicate}건 · 오류 {result.invalid}건. 중복·오류 행은 위 미리보기에서 확인하세요.</div>}
+    <section className="import-history" aria-labelledby="import-history-title"><div className="section-head"><div><h3 id="import-history-title">최근 등록 이력</h3><p>경영체가 등록된 시각과 작업 계정을 기록합니다.</p></div></div>{historyError && <p className="fine-print" role="status">{historyError}</p>}{history.length ? <div className="table-wrap"><table className="import-table"><caption className="sr-only">최근 등록 이력</caption><thead><tr><th>경영체</th><th>등록 작업자</th><th>등록 시각</th></tr></thead><tbody>{history.map(item=><tr key={item.id}><td>{item.company_name}</td><td>{item.uploaded_by}</td><td><time dateTime={item.uploaded_at}>{new Date(item.uploaded_at).toLocaleString('ko-KR')}</time></td></tr>)}</tbody></table></div>:!historyError&&<p className="fine-print">이력 기록을 시작한 뒤 등록한 항목이 여기에 표시됩니다.</p>}</section>
   </section>;
 }

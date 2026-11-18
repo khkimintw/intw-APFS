@@ -14,9 +14,9 @@
 @media(max-width:720px){.list-controls label,.export-fields label{flex:1 1 140px}.list-controls select,.export-fields input{flex:1;width:100%}.export-fields .primary{flex:1 1 100%;min-height:44px}.pager{justify-content:center}.pager-buttons button{min-height:44px;min-width:44px}}
 
 /* APFS company-list layout follows the latest Figma frame. */
-.company-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+.company-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
 .company-layout>.surface:first-child{min-width:0;padding:20px 22px}
-.company-help{position:sticky;top:16px;padding:20px 18px;background:#fffaf6;border-color:#f1e8e0}
+.company-help{display:none}
 .company-help h3{margin:5px 0 8px;font-size:15px;color:#1f2329}
 .company-help>p{font-size:11px;line-height:1.65;margin:0 0 17px;color:#6b7280}
 .guide-item{padding:12px 0;border-top:1px solid #eadfd6}
@@ -97,3 +97,7 @@ body{background:var(--fg-bg)}
 .sample-import-table{min-width:620px}
 .sample-import-table td:first-child{font-weight:600;color:var(--fg-ink)}
 @media(max-width:720px){.import-example-head{align-items:flex-start;flex-direction:column}.sample-import-table{min-width:560px}}
+
+.notes-col{min-width:210px;max-width:280px}.note-tooltip{position:relative;display:block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4e6170;cursor:help}.note-tooltip:hover:after,.note-tooltip:focus-visible:after{content:attr(data-note);position:absolute;z-index:20;left:0;top:calc(100% + 6px);width:min(360px,70vw);padding:11px 13px;border:1px solid #d9e2e8;border-radius:7px;background:#fff;color:#263a49;box-shadow:0 8px 28px rgba(25,55,80,.16);font-size:11px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.registered-cell{min-width:160px}.registered-cell b{white-space:nowrap}.registered-cell small{white-space:nowrap}.mail-link{border:1px solid #dce4e8;border-radius:6px;padding:7px 10px;color:#327f74;font-size:11px;font-weight:700}.company-note-full p{white-space:pre-wrap;overflow-wrap:anywhere}.import-history{margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}.import-history .section-head{margin-bottom:10px}
+
+.company-layout{grid-template-columns:minmax(0,1fr)!important}.company-help{display:none!important}
