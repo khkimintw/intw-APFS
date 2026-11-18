@@ -67,9 +67,9 @@ create policy sessions_read_scope on public.consultation_sessions for select to 
 -- Keep the legacy columns/data, but remove their Data API column privileges for every app role.
 -- RLS filters rows, not columns. A UI-only projection cannot protect notes or source_payload.
 revoke all on public.companies from anon,authenticated;
-grant select(id,business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary,created_at,updated_at) on public.companies to authenticated;
-grant insert(business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary) on public.companies to authenticated;
-grant update(business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary) on public.companies to authenticated;
+grant select(id,business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary,business_registration_number,founded_year,created_at,updated_at) on public.companies to authenticated;
+grant insert(business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary,business_registration_number,founded_year) on public.companies to authenticated;
+grant update(business_name,theme,program_year,presentation_date,assigned_consultant_id,status,cooperation_level,report_status,intake_date,reapplicant,ir_direct,business_summary,business_registration_number,founded_year) on public.companies to authenticated;
 grant delete on public.companies to authenticated;
 revoke all on public.profiles from anon,authenticated;
 grant select(id,display_name,role,user_kind,company_id,approved,active,created_at,updated_at) on public.profiles to authenticated;

@@ -73,3 +73,19 @@ body{background:var(--fg-bg)}
 .company-help{background:#fffaf3;border-color:#f1e6d6}
 @media(max-width:900px){.filter-bar{flex-wrap:wrap}.filter-bar select{flex:1 1 130px;max-width:none}.filter-search{flex:1 1 100%}.list-tools .list-controls{margin-left:0;flex:1 1 100%}}
 @media(max-width:720px){.filter-submit,.ghost-button,.chip,.export-tool summary{min-height:44px}.filter-bar select,.filter-search{min-height:44px}}
+
+/* Figma 1:583 refinements: numbered guide, new views, import. */
+.guide-list{list-style:none;margin:0 0 12px;padding:0;counter-reset:guide}
+.guide-list .guide-item{position:relative;padding:12px 0 12px 30px;counter-increment:guide}
+.guide-list .guide-item::before{content:counter(guide);position:absolute;left:0;top:11px;width:20px;height:20px;border-radius:50%;background:#f08a2c;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.company-table td small{display:block}
+.stat-grid.view-stats{margin-bottom:14px}.stat-button{text-align:left;cursor:pointer;font:inherit}.stat-button.on{border-color:var(--fg-blue);background:#f3f7ff}
+.view-card,.import-card{padding:18px 20px;border-color:var(--fg-line);box-shadow:none;border-radius:8px}
+.view-card h3{font-size:13px;margin:18px 0 8px}
+.view-table td b{font-size:12px}.view-table .num,.import-table td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.upload-drop{display:grid;gap:4px;justify-items:center;padding:26px 16px;margin:12px 0;border:1.5px dashed #c9ced6;border-radius:8px;background:#fafbfc;cursor:pointer;text-align:center}
+.upload-drop input{max-width:100%}.upload-drop span{font-weight:600;color:var(--fg-ink)}.upload-drop small{color:var(--fg-sub);font-size:11px}
+.import-summary{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 6px;font-size:12px}.import-summary .ok b{color:#377e62}.import-summary .warn b{color:#9a6c17}.import-summary .bad b{color:#b3413c}
+.import-table tr.error td{background:#fff5f4}.import-table tr.duplicate td{background:#fffaf0;color:#7a6a45}
+.import-actions{display:flex;gap:8px;margin-top:12px}
+@media(max-width:720px){.import-actions{flex-direction:column}.import-actions button{min-height:44px}}

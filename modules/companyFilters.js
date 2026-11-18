@@ -9,14 +9,17 @@ export function intakeOptions(companies) {
 
 export function filterCompanies(companies, f) {
   const query = String(f.search || '').trim().toLowerCase();
+  const digits = query.replace(/\D/g, '');
   const intake = f.intake ?? ALL;
+  const category = f.directOnly ? 'ir' : (f.category ?? ALL);
   return companies.filter(company =>
     (f.theme === ALL || !f.theme || company.theme === f.theme)
     && (f.status === ALL || !f.status || company.status === f.status)
     && (intake === ALL || String(company.intake_date ?? '').trim() === intake)
     && (f.consultant === ALL || !f.consultant || (f.consultant === 'none' ? !company.assigned_consultant_id : company.assigned_consultant_id === f.consultant))
-    && (!f.directOnly || company.ir_direct)
-    && `${company.business_name} ${company.theme || ''} ${company.status || ''}`.toLowerCase().includes(query));
+    && (category === ALL || (category === 'ir' ? !!company.ir_direct : !company.ir_direct))
+    && (!query || String(company.business_name || '').toLowerCase().includes(query)
+      || (digits.length >= 3 && String(company.business_registration_number || '').replace(/\D/g, '').includes(digits))));
 }
 
 /** '접수 주차' only when an actual stored value mentions 주/주차; otherwise '접수일'. Values are never transformed. */

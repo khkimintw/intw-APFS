@@ -1,16 +1,20 @@
+import { maskBizNo } from './companyImport';
 // 경영체 목록 XLSX 내보내기. 화면 표에 이미 노출되는 업무 컬럼만 사용한다.
 // 제외(개인정보 정책): 연락처·주소·개인이메일·주민번호·생년월일·원본 payload·관리자 notes·업무 개요 자유서술.
 export const EXPORT_COLUMNS = [
   { key: 'no', header: '번호', width: 8 },
-  { key: 'business_name', header: '경영체명', width: 32 },
-  { key: 'theme', header: '테마', width: 18 },
-  { key: 'program_year', header: '사업연도', width: 10 },
+  { key: 'business_name', header: '기업명', width: 32 },
+  { key: 'business_registration_number', header: '사업자번호(마스킹)', width: 18 },
+  { key: 'founded_year', header: '설립연도', width: 10 },
+  { key: 'category', header: '구분', width: 12 },
   { key: 'status', header: '진행 상태', width: 16 },
   { key: 'consultant', header: '담당 컨설턴트', width: 18 },
+  { key: 'intake_date', header: '접수일', width: 14 },
+  { key: 'theme', header: '테마', width: 18 },
+  { key: 'program_year', header: '사업연도', width: 10 },
+  { key: 'presentation_date', header: '발표 일정', width: 16 },
   { key: 'cooperation_level', header: '협조도', width: 12 },
   { key: 'report_status', header: '보고 상태', width: 12 },
-  { key: 'presentation_date', header: '발표 일정', width: 16 },
-  { key: 'ir_direct', header: 'IR 직행', width: 9 },
 ];
 
 // 수식 주입 방지: 문자열 셀이 = + - @ 탭/CR로 시작하면 앞에 작은따옴표를 붙인다.
@@ -36,7 +40,7 @@ export function resolveRange(total, startText, endText) {
   return { from, to };
 }
 
-export async function buildCompanyXlsx(rows, { from, to, resolveConsultant, onProgress }) {
+export async function buildCompanyXlsx(rows, { from, to, resolveConsultant, onProgress, intakeName = '접수일' }) {
   const slice = rows.slice(from - 1, to), total = slice.length;
   onProgress?.({ phase: '엑셀 모듈 준비 중', done: 0, total });
   const ExcelJS = (await import('exceljs')).default;
@@ -44,7 +48,7 @@ export async function buildCompanyXlsx(rows, { from, to, resolveConsultant, onPr
   workbook.creator = 'intween';
   workbook.created = new Date();
   const sheet = workbook.addWorksheet('경영체 목록', { views: [{ state: 'frozen', ySplit: 1 }] });
-  sheet.columns = EXPORT_COLUMNS.map(({ header, key, width }) => ({ header, key, width }));
+  sheet.columns = EXPORT_COLUMNS.map(({ header, key, width }) => ({ header: key === 'intake_date' ? intakeName : header, key, width }));
   sheet.getRow(1).font = { bold: true };
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: EXPORT_COLUMNS.length } };
   const CHUNK = 200;
@@ -53,14 +57,17 @@ export async function buildCompanyXlsx(rows, { from, to, resolveConsultant, onPr
     sheet.addRow({
       no: from + index,
       business_name: safeText(company.business_name),
-      theme: safeText(company.theme),
-      program_year: company.program_year ?? '',
+      business_registration_number: safeText(maskBizNo(company.business_registration_number)),
+      founded_year: safeText(company.founded_year),
+      category: company.ir_direct ? 'IR 직행' : '컨설팅',
       status: safeText(company.status),
       consultant: safeText(resolveConsultant(company)),
+      intake_date: safeText(company.intake_date),
+      theme: safeText(company.theme),
+      program_year: company.program_year ?? '',
+      presentation_date: safeText(company.presentation_date),
       cooperation_level: safeText(company.cooperation_level),
       report_status: safeText(company.report_status),
-      presentation_date: safeText(company.presentation_date),
-      ir_direct: company.ir_direct ? 'Y' : '',
     });
     if ((index + 1) % CHUNK === 0) { onProgress?.({ phase: '행 작성 중', done: index + 1, total }); await tick(); }
   }
