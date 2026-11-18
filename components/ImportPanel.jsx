@@ -3,6 +3,11 @@ import { useRef, useState } from 'react';
 import { apiRequest } from '../modules/api';
 import { IMPORT_LIMITS, FIELD_LABELS, buildImportPreview, parseCsv } from '../modules/companyImport';
 
+const EXAMPLE_ROWS = [
+  { business_name: '[예시] 다온농식품', business_registration_number: '000-00-00001', founded_year: '2020', ir_direct: false, status: '배정 대기', intake_date: '1주차' },
+  { business_name: '[예시] 새싹농업', business_registration_number: '000-00-00002', founded_year: '2018', ir_direct: true, status: '진단 대기', intake_date: '2주차' },
+  { business_name: '[예시] 푸른들영농', business_registration_number: '000-00-00003', founded_year: '2022', ir_direct: false, status: '컨설팅 진행', intake_date: '3주차' },
+];
 const cellText = value => {
   if (value == null) return '';
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
@@ -40,6 +45,15 @@ export default function ImportPanel({ session, companies, onDone }) {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [result, setResult] = useState(null);
   const lock = useRef(false);
+
+  function downloadTemplate() {
+    const csv = '\uFEFF기업명,사업자등록번호,설립연도,테마,사업연도,발표일정,접수주차,상태,구분\r\n';
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = '농금원_경영체_업로드_빈양식.csv';
+    document.body.appendChild(link); link.click(); link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   async function choose(event) {
     const file = event.target.files?.[0];
@@ -80,6 +94,11 @@ export default function ImportPanel({ session, companies, onDone }) {
   return <section className="surface import-card" aria-busy={busy}>
     <div className="section-head"><div><h2>엑셀 업로드</h2><p>.xlsx / .csv 파일에서 기업 정보를 일괄 등록합니다. 최대 {IMPORT_LIMITS.maxRows}행 · 5MB.</p></div></div>
     <div className="alert info">가져오는 항목: 기업명(필수), 사업자번호, 설립연도, 테마, 사업연도, 발표 일정, 접수, 상태, 구분(컨설팅/IR 직행). 연락처·주소·이메일·대표자 등 개인 정보 열은 자동으로 제외됩니다. 기업명 또는 사업자번호가 이미 있는 기업은 건너뜁니다(덮어쓰지 않음).</div>
+    <section className="import-example" aria-labelledby="import-example-title">
+      <div className="import-example-head"><div><h3 id="import-example-title">예시 데이터 미리보기</h3><p>아래 표는 형식 이해를 위한 가상 예시이며 실제 경영체 목록에 등록되지 않습니다.</p></div><button type="button" className="ghost-button" onClick={downloadTemplate}>빈 CSV 양식 다운로드</button></div>
+      <div className="table-wrap"><table className="import-table sample-import-table"><caption className="sr-only">등록되지 않는 가상 예시 데이터</caption><thead><tr><th>기업명</th><th>사업자번호</th><th>설립연도</th><th>구분</th><th>상태</th><th>접수주차</th></tr></thead><tbody>{EXAMPLE_ROWS.map(row => <tr key={row.business_name}><td><b>{row.business_name}</b></td><td>{row.business_registration_number}</td><td>{row.founded_year}</td><td>{row.ir_direct ? 'IR 직행' : '컨설팅'}</td><td>{row.status}</td><td>{row.intake_date}</td></tr>)}</tbody></table></div>
+      <p className="fine-print">CSV 양식은 머리글만 있는 빈 파일입니다. 예시 행은 가상 안내용으로만 화면에 표시합니다.</p>
+    </section>
     <label className="upload-drop"><input type="file" accept=".xlsx,.csv" onChange={choose} disabled={busy}/><span>파일 선택 (.xlsx, .csv)</span><small>첫 번째 시트의 첫 행을 머리글로 읽습니다.</small></label>
     {state.phase === 'reading' && <div className="progress-box" role="status"><progress aria-label="파일 읽는 중"/><span>{state.name} 읽는 중…</span></div>}
     {error && <div className="alert error" role="alert">{error}</div>}

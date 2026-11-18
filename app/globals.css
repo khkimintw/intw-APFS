@@ -89,3 +89,11 @@ body{background:var(--fg-bg)}
 .import-table tr.error td{background:#fff5f4}.import-table tr.duplicate td{background:#fffaf0;color:#7a6a45}
 .import-actions{display:flex;gap:8px;margin-top:12px}
 @media(max-width:720px){.import-actions{flex-direction:column}.import-actions button{min-height:44px}}
+
+.import-example{margin:14px 0;padding:14px 16px;border:1px solid #efe3d4;border-radius:8px;background:#fffaf3}
+.import-example-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.import-example-head h3{margin:0 0 4px;font-size:13px;color:var(--fg-ink)}
+.import-example-head p{margin:0;font-size:11px;color:var(--fg-sub)}
+.sample-import-table{min-width:620px}
+.sample-import-table td:first-child{font-weight:600;color:var(--fg-ink)}
+@media(max-width:720px){.import-example-head{align-items:flex-start;flex-direction:column}.sample-import-table{min-width:560px}}
