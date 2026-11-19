@@ -150,3 +150,28 @@ body{background:var(--fg-bg)}
 .app-shell.pseudo-mode .pseudo-switch button.pseudo-return{background:#795820;border-color:#795820}
 .app-shell.pseudo-mode .pseudo-mode-avatar{background:#f2dfad;color:#654d1d}
 @media(max-width:760px){.pseudo-switch{grid-template-columns:1fr 1fr}.pseudo-switch>small{grid-column:1/-1}.pseudo-switch button.pseudo-mode-button{min-height:48px}.pseudo-switch button.pseudo-return{grid-column:1/-1}}
+
+/* Consistent action hierarchy: primary, secondary, and destructive controls. */
+.inline-actions button.primary,.modal-actions>button.primary,.session-card-actions>button.primary{background:var(--navy)!important;border-color:var(--navy)!important;color:#fff!important}
+.inline-actions button.primary:hover,.modal-actions>button.primary:hover,.session-card-actions>button.primary:hover{background:#245579!important;border-color:#245579!important}
+.inline-actions button:not(.primary):not(.danger-button),.modal-actions>button:not(.primary),.session-card-actions>button:not(.primary){background:#eef3f6;border-color:#cbd8e0;color:#29465d}
+.inline-actions button:not(.primary):not(.danger-button):hover,.modal-actions>button:not(.primary):hover,.session-card-actions>button:not(.primary):hover{background:#e3edf2;border-color:#aebfca}
+.inline-actions .danger-button,.session-card-actions .danger-button,.danger-button{background:#fff0ef;border-color:#ecc2be;color:#a33f39}
+.inline-actions .danger-button:hover,.session-card-actions .danger-button:hover,.danger-button:hover{background:#ffe2df;border-color:#dcaaa5}
+.ghost-button,.chip{background:#f3f7f9;border-color:#ccd9e0;color:#29465d}
+.ghost-button:hover,.chip:hover{background:#e8f0f4;border-color:#aec1ce;color:#173d5d}
+.modal-actions button:not(.primary){padding:8px 13px;font-size:11px;font-weight:600}
+.edit-modal .icon-button{background:#f2f5f7;border-color:#d8e0e5;color:#526675}
+.note-tooltip{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.note-tooltip:hover,.note-tooltip:focus-visible{color:#173d5d;background:#f4f8fa}
+.company-note-full{border-left:4px solid #d9a54d;background:#fffaf0}
+.company-note-full b{display:block;color:#6c501d;font-size:12px}
+.company-note-full p{margin:5px 0 0;color:#34495b}
+.session-template-help{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid #d8e3e8;border-radius:8px;background:#f5f8fa}
+.session-template-help>div:first-child{display:grid;gap:2px}
+.session-template-help strong{font-size:11px;color:#29465d}
+.session-template-help span{font-size:10px;color:#718391}
+.session-template-links{display:flex;gap:7px;flex-wrap:wrap}
+.session-template-link{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:6px 9px;border:1px solid #b9cbd5;border-radius:6px;background:#fff;color:#245b7a;font-size:10px;font-weight:700}
+.session-template-link:hover{background:#e8f1f5;border-color:#789caf;color:#173d5d}
+@media(max-width:760px){.session-template-help{align-items:flex-start}.session-template-links{width:100%}.session-template-link{flex:1;justify-content:center}}

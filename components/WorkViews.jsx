@@ -25,10 +25,10 @@ export function AssignmentView({ sessions, companies, peopleById, loading, error
   </Frame>;
 }
 
-const REPORT_TEMPLATES = [
- {path:'/report-templates/diagnosis_2026.hwp',filename:'1. 기업진단보고서 (2026 ver.).hwp',title:'기업진단 보고서',detail:'기업 현황과 진단 의견, 요약 의견 및 현장 사진을 정리합니다.'},
- {path:'/report-templates/consulting_2026.hwp',filename:'2. 컨설팅 보고서 (2026 ver.).hwp',title:'컨설팅 보고서',detail:'기업·제품·인력 현황과 회차별 컨설팅 내용 및 성과를 기록합니다.'},
- {path:'/report-templates/performance_confirmation_2026.hwp',filename:'3. 2026 투자 전 지원사업_수행 확인서 (2026 ver.).hwp',title:'수행 확인서',detail:'최종 컨설팅 회차 후 기업 서명을 받는 확인서입니다.'},
+export const REPORT_TEMPLATES = [
+ {type:'diagnosis',path:'/report-templates/diagnosis_2026.hwp',filename:'1. 기업진단보고서 (2026 ver.).hwp',title:'기업진단 보고서',detail:'기업 현황과 진단 의견, 요약 의견 및 현장 사진을 정리합니다.'},
+ {type:'consulting',path:'/report-templates/consulting_2026.hwp',filename:'2. 컨설팅 보고서 (2026 ver.).hwp',title:'컨설팅 보고서',detail:'기업·제품·인력 현황과 회차별 컨설팅 내용 및 성과를 기록합니다.'},
+ {type:'confirmation',path:'/report-templates/performance_confirmation_2026.hwp',filename:'3. 2026 투자 전 지원사업_수행 확인서 (2026 ver.).hwp',title:'수행 확인서',detail:'최종 컨설팅 회차 후 기업 서명을 받는 확인서입니다.'},
 ];
 export function ReportsView({sessions,companies,peopleById,loading,error,onPick}) {
  const {byId,consultant}=useJoin(companies,peopleById), [filter,setFilter]=useState('전체');
