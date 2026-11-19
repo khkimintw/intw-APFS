@@ -28,9 +28,9 @@ export default function Workspace({ session, profile: actualProfile, onSignOut, 
   const [sessions, setSessions] = useState([]), [audits, setAudits] = useState([]), [loadedCompany, setLoadedCompany] = useState('');
   const [search, setSearch] = useState(uiSeed.search || ''), [searchDraft, setSearchDraft] = useState(uiSeed.search || ''), [categoryFilter, setCategoryFilter] = useState(uiSeed.categoryFilter || '전체');
   const directOnly = categoryFilter === 'ir';
-  useEffect(() => { try { sessionStorage.setItem(`apfs-ui-${profile.id}`, JSON.stringify({section,selectedId,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir})); } catch {} }, [profile.id,section,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir]);
   const [allSessions, setAllSessions] = useState([]), [sessionsBusy, setSessionsBusy] = useState(false), [sessionsError, setSessionsError] = useState('');
   const [statusFilter, setStatusFilter] = useState(uiSeed.statusFilter || '전체'), [consultantFilter, setConsultantFilter] = useState(uiSeed.consultantFilter || '전체'), [intakeFilter, setIntakeFilter] = useState(uiSeed.intakeFilter || '전체');
+  useEffect(() => { try { sessionStorage.setItem(`apfs-ui-${profile.id}`, JSON.stringify({section,selectedId,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir})); } catch {} }, [profile.id,section,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir]);
   const [busy, setBusy] = useState(true), [mutationBusy, setMutationBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
   const [error, setError] = useState(''), [toast, setToast] = useState(''), [auditMessage, setAuditMessage] = useState('');
   const [editing, setEditing] = useState(null), [form, setForm] = useState(blank);
