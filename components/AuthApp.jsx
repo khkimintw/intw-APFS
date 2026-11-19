@@ -55,9 +55,13 @@ export default function AuthApp() {
       if (error) { setMessage('로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.'); setBusy(false); }
       else loadProfile(data.session);
     }).catch(() => { if (alive) { setMessage('인증 서버에 연결하지 못했습니다.'); setBusy(false); } });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
-      // 인증 콜백 안에서 다른 인증 요청을 대기하지 않습니다.
-      setTimeout(() => { if (alive) loadProfile(next); }, 0);
+    const { data: listener } = supabase.auth.onAuthStateChange((event, next) => {
+      // getSession already handles the initial state; token refresh is background work.
+      setTimeout(() => {
+        if (!alive || event === "INITIAL_SESSION") return;
+        if (event === "TOKEN_REFRESHED") { setSession(next); return; }
+        loadProfile(next);
+      }, 0);
     });
     return () => { alive = false; ++requestSequence.current; listener.subscription.unsubscribe(); };
   }, []);
