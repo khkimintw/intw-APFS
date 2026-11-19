@@ -44,7 +44,7 @@ capabilities.departureBase=true와 reportFiles=true는 방문 거점 입력과 �
 - 업로드 이력은 actor/file/time/counts를 기록한다. 가져오기 되돌리기는 수정되거나 회차가 연결된 배치를 차단한다.
 - 회차 보고서는 브라우저에서 Supabase private Storage로 직접 업로드한다. Vercel Function을 통과하지 않아 4.5MB 요청 한도에 걸리지 않는다. API는 업로드 파일 경로를 확인한 뒤 회차 메타데이터를 기록하고 다운로드에 60초 signed URL을 쓴다.
 - Pseudo User/Admin 데이터는 현재 브라우저 localStorage에만 저장한다. 이 모드에서 실 Supabase API를 호출하지 않는다.
-- 프로덕션 빌드는 성공했고 commit e20e129를 khkimintw/intw-APFS와 intween/intw-APFS main에 push했다. Vercel 배포가 시작되도록 push했지만, 운영 URL은 SSO 보호로 로그인 화면에 리디렉션되어 이 세션에서는 새 배포 상태를 확인할 수 없다.
+- 프로덕션 빌드는 성공했고 commit de41115를 khkimintw/intw-APFS와 intween/intw-APFS main에 push했다. Vercel 배포가 시작되도록 push했지만, 운영 URL은 SSO 보호로 로그인 화면에 리디렉션되어 이 세션에서는 새 배포 상태를 확인할 수 없다.
 
 ## 남은 작업
 

@@ -37,4 +37,4 @@
 
 ## 배포 상태
 
-commit e20e129를 khkimintw/intw-APFS와 intween/intw-APFS main에 push했다. Vercel 배포가 시작되도록 push했으며, 운영 URL이 SSO로 보호되어 새 배포 완료 상태는 이 세션에서 확인하지 못했다.
+commit de41115를 khkimintw/intw-APFS와 intween/intw-APFS main에 push했다. Vercel 배포가 시작되도록 push했으며, 운영 URL이 SSO로 보호되어 새 배포 완료 상태는 이 세션에서 확인하지 못했다.
