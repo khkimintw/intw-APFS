@@ -37,4 +37,4 @@
 
 ## 배포 상태
 
-서버 저장소의 변경은 현재 main 작업트리에 있으며 아직 commit/push 하지 않았다. push는 Vercel 배포를 시작하므로, 빌드와 검토가 끝난 뒤 진행한다.
+commit e20e129를 khkimintw/intw-APFS와 intween/intw-APFS main에 push했다. Vercel 배포가 시작되도록 push했으며, 운영 URL이 SSO로 보호되어 새 배포 완료 상태는 이 세션에서 확인하지 못했다.
