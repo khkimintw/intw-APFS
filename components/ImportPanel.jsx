@@ -26,10 +26,23 @@ async function readMatrix(file) {
     try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch { text = new TextDecoder('euc-kr').decode(buffer); }
     return parseCsv(text);
   }
+  let parseBuffer = buffer;
+  const signature = new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 8));
+  const encryptedOle = signature.length === 8 && [0xd0,0xcf,0x11,0xe0,0xa1,0xb1,0x1a,0xe1].every((byte,index)=>signature[index]===byte);
+  if (/\.xlsx$/i.test(file.name) && encryptedOle) {
+    try {
+      const module = await import('xlsx-populate/browser/xlsx-populate.min.js');
+      const XlsxPopulate = module.default || module.XlsxPopulate || window.XlsxPopulate;
+      const decrypted = await XlsxPopulate.fromDataAsync(buffer, { password:'2026' });
+      parseBuffer = await decrypted.outputAsync('arraybuffer');
+    } catch {
+      throw new Error('PASSWORD_DECRYPT_FAILED');
+    }
+  }
   const XLSX = await import('xlsx');
   const codepages = await import('xlsx/dist/cpexcel.full.mjs');
   XLSX.set_cptable(codepages);
-  const workbook = XLSX.read(buffer, { type:'array', password:'2026', cellDates:true, sheetRows:IMPORT_LIMITS.maxRows + 51 });
+  const workbook = XLSX.read(parseBuffer, { type:'array', password:encryptedOle && /\.xlsx$/i.test(file.name) ? undefined : '2026', cellDates:true, sheetRows:IMPORT_LIMITS.maxRows + 51 });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   if (!sheet) throw new Error('시트를 찾지 못했습니다.');
   return XLSX.utils.sheet_to_json(sheet, { header:1, raw:false, defval:'', blankrows:false })
@@ -70,7 +83,7 @@ export default function ImportPanel({ session, companies, onDone }) {
       setState({ phase: 'preview', name: file.name, ...preview });
     } catch (problem) {
       const detail=String(problem?.message||'').toLowerCase();
-      setError(/password|encrypt|decrypt|encryption|cfb|unsupported/.test(detail) ? '파일 열기 암호 2026으로 읽기를 시도했지만 이 Excel 암호화 방식은 지원되지 않습니다. Excel에서 암호를 입력해 파일을 연 뒤 암호 보호를 해제하고 XLSX 또는 CSV로 다시 저장해 주세요.' : '파일을 읽지 못했습니다. 파일 형식과 첫 번째 시트의 머리글을 확인해 주세요.');
+      setError(detail.includes('password_decrypt_failed') ? '암호 2026으로 파일을 열지 못했습니다. 암호가 바뀌었거나 지원하지 않는 Excel 암호화 형식일 수 있습니다. Excel에서 열리는지 확인한 뒤, 계속 실패하면 보호를 해제하고 XLSX 또는 CSV로 저장해 주세요.' : /password|encrypt|decrypt|encryption|cfb|unsupported/.test(detail) ? '파일 암호를 확인할 수 없습니다. Excel에서 암호를 입력해 열고 보호를 해제한 뒤 XLSX 또는 CSV로 다시 저장해 주세요.' : '파일을 읽지 못했습니다. 파일 형식과 첫 번째 시트의 머리글을 확인해 주세요.');
       setState({ phase: 'idle' });
     }
   }
@@ -105,7 +118,7 @@ export default function ImportPanel({ session, companies, onDone }) {
       <div className="table-wrap"><table className="import-table sample-import-table"><caption className="sr-only">등록되지 않는 가상 예시 데이터</caption><thead><tr><th>기업명</th><th>사업자번호</th><th>설립연도</th><th>구분</th><th>상태</th><th>접수주차</th></tr></thead><tbody>{EXAMPLE_ROWS.map(row => <tr key={row.business_name}><td><b>{row.business_name}</b></td><td>{row.business_registration_number}</td><td>{row.founded_year}</td><td>{row.ir_direct ? 'IR 직행' : '컨설팅'}</td><td>{row.status}</td><td>{row.intake_date}</td></tr>)}</tbody></table></div>
       <p className="fine-print">CSV 양식은 머리글만 있는 빈 파일입니다. 예시 행은 가상 안내용으로만 화면에 표시합니다.</p>
     </section>
-    <label className="upload-drop"><input type="file" accept=".xls,.xlsx,.csv" onChange={choose} disabled={busy}/><span>파일 선택 (.xls, .xlsx, .csv)</span><small>첫 번째 시트의 첫 행을 머리글로 읽습니다. 암호화된 XLSX 중 일부는 Excel에서 보호 해제 후 올려야 합니다.</small></label>
+    <label className="upload-drop"><input type="file" accept=".xls,.xlsx,.csv" onChange={choose} disabled={busy}/><span>파일 선택 (.xls, .xlsx, .csv)</span><small>첫 번째 시트의 첫 행을 머리글로 읽습니다. 파일 열기 암호가 설정된 XLSX도 암호 2026으로 브라우저에서 해독해 읽습니다. 파일·암호는 서버로 전송하지 않습니다.</small></label>
     {state.phase === 'reading' && <div className="progress-box" role="status"><progress aria-label="파일 읽는 중"/><span>{state.name} 읽는 중…</span></div>}
     {error && <div className="alert error" role="alert">{error}</div>}
     {error && state.mapped && <p className="fine-print">인식한 열: {state.mapped.map(item => FIELD_LABELS[item.field]).join(', ') || '없음'}</p>}
