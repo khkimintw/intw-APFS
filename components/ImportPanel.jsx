@@ -32,7 +32,9 @@ async function readMatrix(file) {
   if (/\.xlsx$/i.test(file.name) && encryptedOle) {
     try {
       const module = await import('xlsx-populate/browser/xlsx-populate.min.js');
-      const XlsxPopulate = module.default || module.XlsxPopulate || window.XlsxPopulate;
+      const candidates = [module, module.default, module.XlsxPopulate, module.default?.XlsxPopulate, module.default?.default, window.XlsxPopulate];
+      const XlsxPopulate = candidates.find(candidate => typeof candidate?.fromDataAsync === 'function');
+      if (!XlsxPopulate) throw new Error('XLSX_DECRYPTOR_UNAVAILABLE');
       const decrypted = await XlsxPopulate.fromDataAsync(buffer, { password:'2026' });
       parseBuffer = await decrypted.outputAsync('arraybuffer');
     } catch {
