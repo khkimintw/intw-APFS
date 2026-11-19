@@ -14,6 +14,7 @@ export default function AuthApp() {
   const [message, setMessage] = useState('');
   const [form, setForm] = useState({ email: '', password: '', name: '' });
   const requestSequence = useRef(0);
+  const sessionRef = useRef(null);
   const googleAppEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
   const [googleProvider, setGoogleProvider] = useState('checking');
   const googleEnabled = googleAppEnabled && googleProvider === 'enabled';
@@ -33,10 +34,13 @@ export default function AuthApp() {
   }, []);
 
   async function loadProfile(nextSession) {
+    const previousSession = sessionRef.current;
+    const sameUser = !!previousSession?.user?.id && previousSession.user.id === nextSession?.user?.id;
     const sequence = ++requestSequence.current;
+    sessionRef.current = nextSession;
     setSession(nextSession);
     if (!nextSession) { setProfile(null); setBusy(false); return; }
-    setBusy(true);
+    if (!sameUser) setBusy(true);
     try {
       const response = await apiRequest(nextSession, '/me', { includeMeta: true });
       const data = response.data;
@@ -44,7 +48,8 @@ export default function AuthApp() {
       setProfile(data); setCapabilities({ audit: true, ...response.capabilities }); setMessage('');
     } catch (error) {
       if (sequence !== requestSequence.current) return;
-      setProfile(null); setMessage(error.message);
+      if (!sameUser) setProfile(null);
+      setMessage(error.message);
     } finally { if (sequence === requestSequence.current) setBusy(false); }
   }
   useEffect(() => {
@@ -56,10 +61,12 @@ export default function AuthApp() {
       else loadProfile(data.session);
     }).catch(() => { if (alive) { setMessage('인증 서버에 연결하지 못했습니다.'); setBusy(false); } });
     const { data: listener } = supabase.auth.onAuthStateChange((event, next) => {
-      // getSession already handles the initial state; token refresh is background work.
+      // Initial state is loaded by getSession. Same-user auth events only rotate the token;
+      // refreshing the profile screen here would unmount Workspace and reset preview state.
       setTimeout(() => {
-        if (!alive || event === "INITIAL_SESSION") return;
-        if (event === "TOKEN_REFRESHED") { setSession(next); return; }
+        if (!alive || event === 'INITIAL_SESSION') return;
+        const sameUser = !!next?.user?.id && sessionRef.current?.user?.id === next.user.id;
+        if (sameUser) { sessionRef.current = next; setSession(next); return; }
         loadProfile(next);
       }, 0);
     });
@@ -100,7 +107,7 @@ export default function AuthApp() {
     } catch { setMessage('인증 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
     finally { setBusy(false); }
   }
-  const signOut = async () => { if (supabase) await supabase.auth.signOut(); setSession(null); setProfile(null); setMessage(''); };
+  const signOut = async () => { if (supabase) await supabase.auth.signOut(); sessionRef.current = null; setSession(null); setProfile(null); setMessage(''); };
   if (!supabase) return <AuthCard title="연결 설정이 필요합니다"><p>이 배포의 Supabase URL과 publishable key가 아직 설정되지 않았습니다. 관리자가 프로젝트 전용 공개 연결값을 설정해야 로그인할 수 있습니다.</p></AuthCard>;
   if (busy) return <AuthCard title="연결 상태 확인 중"><p role="status">잠시 기다려 주세요.</p></AuthCard>;
   if (session && profile?.active && profile?.approved) return <Workspace session={session} profile={profile} onProfile={setProfile} onSignOut={signOut} capabilities={capabilities} />;
