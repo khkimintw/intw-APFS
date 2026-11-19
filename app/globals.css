@@ -175,3 +175,4 @@ body{background:var(--fg-bg)}
 .session-template-link{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:6px 9px;border:1px solid #b9cbd5;border-radius:6px;background:#fff;color:#245b7a;font-size:10px;font-weight:700}
 .session-template-link:hover{background:#e8f1f5;border-color:#789caf;color:#173d5d}
 @media(max-width:760px){.session-template-help{align-items:flex-start}.session-template-links{width:100%}.session-template-link{flex:1;justify-content:center}}
+.note-tooltip:hover:after,.note-tooltip:focus-visible:after{content:none!important;display:none!important}
