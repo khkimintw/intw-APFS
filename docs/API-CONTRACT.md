@@ -1,4 +1,4 @@
-# APFS /api/v1 계약 — 로컬 구현, DB hardening 미적용
+# APFS /api/v1 계약 — 서버 인증·권한 검사 적용
 
 클라이언트 데이터 CRUD는 서버 API를 사용한다. 로그인은 기존 Supabase Auth를 유지한다. 모든 요청은 `Authorization: Bearer <현재 사용자 access token>`이 필요하다. 토큰은 문서·로그·URL에 넣지 않는다. 서버는 `auth.getUser(token)`로 검증하고 `profiles`의 승인·활성을 재확인한다. 사용자 bearer를 그대로 RLS 쿼리에 사용하며 service role은 사용하지 않는다.
 
@@ -14,17 +14,19 @@
 | `/companies/:id/sessions` | GET | 본인 접근 범위 |
 | `/companies/:id/sessions` | POST | host/admin 또는 해당 기업 배정 consultant. 중복은 409, upsert 없음 |
 | `/sessions/:id` | GET | 본인 접근 범위 |
+| sessions/:id/report | GET/POST | 본인 접근 범위에서 서명 다운로드 또는 보고서 업로드 (PDF/HWP/HWPX/DOC/DOCX/XLS/XLSX, 20MB 이하) |
+| sessions/:id/report | GET/POST | 본인 접근 범위에서 서명 다운로드 또는 보고서 업로드 (PDF/HWP/HWPX/DOC/DOCX/XLS/XLSX, 20MB 이하) |
 | `/sessions/:id` | PATCH | host/admin 또는 배정 consultant. 기업 재연결·updated_by 위조 불가 |
 | `/sessions/:id` | DELETE | host/admin |
 | `/profiles` | GET | host/admin. 이메일 제외 |
 | `/profiles/:id` | PATCH | host/admin. host 대상/host 지정은 host만, host 자기 접근 해제 금지 |
 | `/audit?company_id=UUID` | GET | host/admin. 이벤트 메타데이터만. 최대 100개 |
 
-회사 응답/입력에서 대표자·연락처·이메일·사업자번호·주소·매출·내부 메모·source_payload를 제외한다. API projection만으로 직접 Data API 접근까지 보호되는 것은 아니다. 별도 `supabase/drafts/20261117_api_rls_hardening.sql`의 컬럼 권한/RLS 보완을 승인 적용해야 이 경계가 DB에도 강제된다.
+경영체 응답에는 공개 사업자번호를 그대로 포함한다. 대표자·담당자 연락처, 주소, 매출, 내부 메모, 원본 시트의 추가 열은 별도 company_admin_private에 저장하며 host/admin만 서버 API에서 조회·수정한다. client/consultant 응답은 private fields를 포함하지 않는다.
 
 진단 신규 1회, 컨설팅 신규 1~3회. 기존 4회차는 조회하고 일정/보고 상태를 고칠 수 있으나 새로운 4회차나 유형/회차 재정의는 차단한다. 보고 상태는 미제출/작성 중/검토 중/제출 완료. report_note는 4000자 이내이며 개인정보 입력을 금지한다. 파일이 업로드된 상태를 의미하지 않는다.
 
-`capabilities.departureBase=false`, `reportFiles=false`, `rlsMigrationApplied=false`는 초안 미적용 상태를 명확히 나타낸다. Supabase 현재 테이블에는 departure_base 컬럼이 없다. 새 field를 보내면 400이며 실제 파일 업로드·영구 저장·주소 최적화를 완료했다고 표시하지 않는다.
+capabilities.departureBase=true와 reportFiles=true는 방문 거점 입력과 회차 보고서 파일 저장을 지원한다는 의미다. 보고서는 비공개 consultation-reports 버킷에 저장하고 배정 컨설턴트 또는 관리자만 접근한다. 다운로드 링크는 60초 만료 서명 URL이다. 전체 스키마 RLS hardening 상태는 별도 검토 대상으로 남아 있어 rlsMigrationApplied=false를 유지한다.
 
 ## 읽기 전용 메타데이터 확인
 
@@ -36,10 +38,18 @@
 - [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [컬럼 수준 보안](https://supabase.com/docs/guides/database/postgres/column-level-security)
 
-## 이번 단계의 실제 검증 결과
+## 2026-11-19 구현 상태
 
-- `npm run test:rls`: **22/22 통과**, 실패 0. `@electric-sql/pglite@0.5.16`의 메모리 PostgreSQL에 원본 snapshot과 새 hardening 초안을 실제 적용했다. 권한을 `authenticated`로 바꾼 직접 SQL 요청으로 host/admin/consultant/client/pending/inactive 범위를 검사했다.
-- 단순 UI 조건 검사가 아니다. 역할별 SELECT/INSERT/UPDATE/DELETE, host 지정·자기 접근 보존, 미승인 계정 차단, 배정 범위, 개인정보 컬럼 권한, 위조 감사 이벤트 거부, 중복·신규 회차 한도, 기존 4회차 보존을 DB 엔진에서 확인했다.
-- 이 테스트는 새 합성 기업/상담 몇 개만 메모리에 만들고 종료한다. 기존 235개 기업·156개 상담은 복사·읽기·변경하지 않는다. 실제 Supabase JWT 발급/Google 인증·PostgREST 동작까지 대체하는 검증은 아니다.
-- API 입력·권한 순수 함수 합성 검사 15개와 서버 파일 `node --check` 2개도 통과했다. API 실제 배포/로그인 후 업무 CRUD 결과는 별도로 확인해야 한다.
-- Supabase 공개 Auth settings 읽기 결과: email enabled, Google disabled, signup enabled, email auto-confirm disabled. 계정이나 OAuth 설정은 만들거나 바꾸지 않았다. 로그인 이메일 검증 후 최초 host를 승인 지정하는 콘솔 단계가 남아 있다.
+- Supabase에는 import batch/history/undo, private company fields, source sheet payload, IR schedule/confirmation, visit time/confirmation, report file metadata와 private Storage bucket/policies를 추가했다.
+- 업로드 이력은 actor/file/time/counts를 기록한다. 가져오기 되돌리기는 수정되거나 회차가 연결된 배치를 차단한다.
+- 회차 보고서는 브라우저에서 Supabase private Storage로 직접 업로드한다. Vercel Function을 통과하지 않아 4.5MB 요청 한도에 걸리지 않는다. API는 업로드 파일 경로를 확인한 뒤 회차 메타데이터를 기록하고 다운로드에 60초 signed URL을 쓴다.
+- Pseudo User/Admin 데이터는 현재 브라우저 localStorage에만 저장한다. 이 모드에서 실 Supabase API를 호출하지 않는다.
+- 프로덕션 빌드는 이 단계에서 성공했다. 이 commit은 아직 push/deploy하지 않았다.
+
+## 남은 작업
+
+- 농금원 암호 Excel의 자동 열기와 오래된 XLS 파서는 샘플 파일 형식을 확인해야 한다. 현재 암호 없는 XLSX/CSV만 지원한다.
+- 사업자번호로 주소 자동 검색은 외부 주소/사업자 API와 키가 없어 미구현이다. 주소 직접 편집·확인·잠금과 지도 링크는 제공한다.
+- 앱 자체 이메일 발송은 미구현이며 메일 앱 작성 링크만 있다.
+- 경로 자동 최적화는 미구현이다. 컨설턴트가 입력한 출발 거점과 주소로 Google 지도 링크를 연다.
+- 전체 direct Data API 접근과 역할별 RLS는 추가 점검이 필요하다. OAuth 실제 로그인, Vercel 최종 배포/브라우저 검증도 배포 뒤 확인한다.

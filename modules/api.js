@@ -1,11 +1,14 @@
+import { pseudoRequest } from './pseudoApi';
 export async function apiRequest(session, path, options = {}) {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (session?.pseudoMode) return pseudoRequest(session, path, options);
   if (!session?.access_token) throw new Error('로그인이 필요합니다. 다시 로그인해 주세요.');
   let response;
   try {
     response = await fetch(`/api/v1${path}`, {
       method: options.method || 'GET',
-      headers: { Authorization: `Bearer ${session.access_token}`, ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
-      ...(options.body ? { body: JSON.stringify(options.body) } : {}),
+      headers: { Authorization: `Bearer ${session.access_token}`, ...(options.body && !isFormData ? { 'Content-Type': 'application/json' } : {}) },
+      ...(options.body ? { body: isFormData ? options.body : JSON.stringify(options.body) } : {}),
       cache: 'no-store', signal: options.signal,
     });
   } catch (error) {

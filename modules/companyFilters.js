@@ -12,12 +12,15 @@ export function filterCompanies(companies, f) {
   const digits = query.replace(/\D/g, '');
   const intake = f.intake ?? ALL;
   const category = f.directOnly ? 'ir' : (f.category ?? ALL);
+  const abandoned = company => /포기/.test(String(company.status || ''));
+  const reapplicant = company => /재도전|^(o|y|true|1|예)$/i.test(String(company.reapplicant || ''));
+  const categoryMatch = company => category === ALL || (category === 'ir' && !!company.ir_direct) || (category === 'consult' && !company.ir_direct) || (category === 'exclude_abandoned' && !abandoned(company)) || (category === 'abandoned' && abandoned(company)) || (category === 'reapplicant' && reapplicant(company));
   return companies.filter(company =>
     (f.theme === ALL || !f.theme || company.theme === f.theme)
     && (f.status === ALL || !f.status || company.status === f.status)
     && (intake === ALL || String(company.intake_date ?? '').trim() === intake)
     && (f.consultant === ALL || !f.consultant || (f.consultant === 'none' ? !company.assigned_consultant_id : company.assigned_consultant_id === f.consultant))
-    && (category === ALL || (category === 'ir' ? !!company.ir_direct : !company.ir_direct))
+    && categoryMatch(company)
     && (!query || String(company.business_name || '').toLowerCase().includes(query)
       || (digits.length >= 3 && String(company.business_registration_number || '').replace(/\D/g, '').includes(digits))));
 }

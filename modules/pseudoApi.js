@@ -1,0 +1,40 @@
+const KEY='apfs-pseudo-v1';
+const makeSeed=()=>{const now=new Date().toISOString();return{companies:[
+{id:'p-company-1',business_name:'샘플농업회사법인 들녘',business_registration_number:'000-00-00001',founded_year:'2021',theme:'스마트농업',program_year:2026,status:'컨설팅 진행',intake_date:'2026-10-12',assigned_consultant_id:'p-user',ir_direct:false,created_at:now,notes:'시설 확장 계획 확인 필요',intween_notes:'가상 샘플',address:'세종특별자치시 도움5로 20',address_verification:'확인 완료',representative_name:'김샘플',representative_phone:'010-0000-0001',representative_email:'sample1@example.invalid',source_payload:{'특이사항':'시설 확장 계획 확인 필요'}},
+{id:'p-company-2',business_name:'가상농업회사법인 새봄',business_registration_number:'000-00-00002',founded_year:'2019',theme:'농식품',program_year:2026,status:'배정 대기',intake_date:'2026-10-15',assigned_consultant_id:'p-user',ir_direct:true,ir_confirmed:true,ir_scheduled_at:new Date(Date.now()+86400000*3).toISOString(),reapplicant:'재도전',created_at:now,notes:'IR 자료 보완 요청',intween_notes:'가상 데이터',address:'대전광역시 서구 둔산로 100',address_verification:'확인 필요',source_payload:{'재도전':'예'}},
+{id:'p-company-3',business_name:'예시영농조합법인 한결',business_registration_number:'000-00-00003',founded_year:'2017',theme:'일반',program_year:2026,status:'포기',intake_date:'2026-09-28',assigned_consultant_id:'p-other',ir_direct:false,created_at:now,notes:'샘플 포기 항목',address:'충청북도 청주시 상당로 1',source_payload:{}}
+],profiles:[{id:'p-admin',role:'admin',user_kind:'client',display_name:'가상 관리자',approved:true,active:true},{id:'p-user',role:'user',user_kind:'consultant',display_name:'가상 컨설턴트',approved:true,active:true},{id:'p-other',role:'user',user_kind:'consultant',display_name:'다른 가상 담당자',approved:true,active:true}],sessions:[{id:'p-session-1',company_id:'p-company-1',kind:'diagnosis',round_number:1,scheduled_on:'2026-11-24',scheduled_time:'10:00',appointment_confirmed:true,report_status:'제출 완료',remote:false,report_note:'가상 진단 완료',created_at:now}],batches:[],audits:[]}};
+function read(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');return d&&Array.isArray(d.companies)?d:makeSeed()}catch{return makeSeed()}}
+function uid(k){return'p-'+k+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+export function pseudoRequest(session,path,options={}){
+ if(typeof window==='undefined')throw Error('시뮬레이션은 브라우저에서만 사용할 수 있습니다.');
+ if(options.signal?.aborted)throw new DOMException('Aborted','AbortError');
+ const d=read(),method=options.method||'GET',admin=session.pseudoMode==='admin',own=c=>c?.assigned_consultant_id==='p-user',body=options.body||{};
+ let out;const cp=path.match(/^\/companies\/([^/?]+)(?:\/(sessions))?/);
+ if(path==='/me')out={id:admin?'p-admin':'p-user',role:admin?'admin':'user',user_kind:admin?'client':'consultant',display_name:admin?'가상 관리자':'가상 컨설턴트',approved:true,active:true};
+ else if(path==='/companies'&&method==='GET')out=d.companies.filter(c=>admin||own(c));
+ else if(path==='/profiles'&&method==='GET')out=admin?d.profiles:[];
+ else if(path==='/sessions'&&method==='GET')out=d.sessions.filter(s=>admin||own(d.companies.find(c=>c.id===s.company_id)));
+ else if(path==='/companies/import-history'&&method==='GET')out=admin?d.batches:[];
+ else if(path.startsWith('/audit'))out=admin?d.audits:[];
+ else if(path==='/companies/import'&&method==='POST'){
+  let inserted=0,duplicate=0,invalid=0;
+  for(const row of body.rows||[]){if(!row||row._invalid||!row.business_name){invalid++;continue}const key=String(row.business_registration_number||'').replace(/\D/g,'');if(key&&d.companies.some(c=>String(c.business_registration_number||'').replace(/\D/g,'')===key)){duplicate++;continue}d.companies.unshift({id:uid('company'),...row,assigned_consultant_id:admin?(row.assigned_consultant_id||null):'p-user',status:admin?(row.status||'배정 대기'):'승인 대기',import_batch_id:body.batch_id,created_at:new Date().toISOString(),pseudo_pending:!admin});inserted++}
+  const bid=body.batch_id||uid('batch'),old=d.batches.find(x=>x.id===bid);if(old){old.inserted_count+=inserted;old.duplicate_count+=duplicate;old.invalid_count+=invalid}else d.batches.unshift({id:bid,source_filename:body.filename||'시뮬레이션 파일',uploaded_by:admin?'가상 관리자':'가상 사용자',created_at:new Date().toISOString(),received_count:body.received_count||body.rows?.length||0,inserted_count:inserted,duplicate_count:duplicate,invalid_count:invalid,undone_at:null});localStorage.setItem(KEY,JSON.stringify(d));out={inserted,skipped_duplicate:duplicate,invalid,received:(body.rows||[]).length}
+ }
+ else if(path==='/companies/import-undo'&&method==='POST'){const b=d.batches.find(x=>x.id===body.batch_id);if(!b)throw Error('시뮬레이션 업로드를 찾을 수 없습니다.');d.companies=d.companies.filter(c=>c.import_batch_id!==body.batch_id);b.undone_at=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(d));out={undone:true}}
+ else if(path==='/companies'&&method==='POST'){out={id:uid('company'),...body,assigned_consultant_id:admin?body.assigned_consultant_id||null:'p-user',status:admin?body.status:'승인 대기',created_at:new Date().toISOString(),pseudo_pending:!admin};d.companies.unshift(out);localStorage.setItem(KEY,JSON.stringify(d))}
+ else if(cp&&cp[2]&&method==='GET'){if(!admin&&!own(d.companies.find(c=>c.id===cp[1])))throw Error('가상 계정에 배정되지 않은 경영체입니다.');out=d.sessions.filter(s=>s.company_id===cp[1])}
+ else if(cp&&cp[2]&&method==='POST'){out={id:uid('session'),company_id:cp[1],...body,created_at:new Date().toISOString()};d.sessions.push(out);localStorage.setItem(KEY,JSON.stringify(d))}
+ else if(cp&&!cp[2]&&method==='GET'){out=d.companies.find(c=>c.id===cp[1]);if(!out||(!admin&&!own(out)))throw Error('경영체를 찾을 수 없습니다.')}
+ else if(cp&&!cp[2]&&method==='PATCH'){if(!admin)throw Error('Pseudo User는 관리자 정보 수정 권한이 없습니다.');const i=d.companies.findIndex(c=>c.id===cp[1]);if(i<0)throw Error('경영체를 찾을 수 없습니다.');d.companies[i]={...d.companies[i],...body};out=d.companies[i];localStorage.setItem(KEY,JSON.stringify(d))}
+ else if(cp&&!cp[2]&&method==='DELETE'){if(!admin)throw Error('Pseudo User는 삭제 권한이 없습니다.');d.companies=d.companies.filter(c=>c.id!==cp[1]);localStorage.setItem(KEY,JSON.stringify(d));out={id:cp[1],deleted:true}}
+ else if(/^\/sessions\/[^/]+\/report$/.test(path)&&method==='GET'){const item=d.sessions.find(x=>x.id===path.split('/')[2]);out=item?.report_file_name?{name:item.report_file_name,size:item.report_file_size,uploaded_at:item.report_file_uploaded_at,url:'#pseudo-download'}:null}
+ else if(/^\/sessions\/[^/]+\/report$/.test(path)&&method==='POST'){const item=d.sessions.find(x=>x.id===path.split('/')[2]);if(!item||!body.name)throw Error('가상 보고서 파일을 찾을 수 없습니다.');item.report_file_name=body.name;item.report_file_size=body.file_size;item.report_file_uploaded_at=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(d));out={name:item.report_file_name,size:item.report_file_size,uploaded_at:item.report_file_uploaded_at}}
+ else if(path.startsWith('/sessions/')&&method==='PATCH'){const i=d.sessions.findIndex(s=>s.id===path.split('/')[2]);if(i<0)throw Error('회차를 찾을 수 없습니다.');d.sessions[i]={...d.sessions[i],...body};out=d.sessions[i];localStorage.setItem(KEY,JSON.stringify(d))}
+ else if(path.startsWith('/sessions/')&&method==='DELETE'){if(!admin)throw Error('Pseudo User는 삭제 권한이 없습니다.');d.sessions=d.sessions.filter(s=>s.id!==path.split('/')[2]);localStorage.setItem(KEY,JSON.stringify(d));out={deleted:true}}
+ else if(path.startsWith('/profiles/')&&method==='PATCH'){if(!admin)throw Error('가상 관리자만 계정 설정을 바꿀 수 있습니다.');const p=d.profiles.find(x=>x.id===path.split('/')[2]);if(!p)throw Error('가상 계정을 찾을 수 없습니다.');Object.assign(p,body);localStorage.setItem(KEY,JSON.stringify(d));out=p}
+ else out=[];
+ return options.includeMeta?{data:out,capabilities:{audit:true}}:out
+}
+export function resetPseudoData(){localStorage.removeItem(KEY)}
