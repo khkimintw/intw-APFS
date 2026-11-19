@@ -32,7 +32,7 @@
 - IR 일정, 확정 상태와 월별 캘린더
 - 회차별 방문 날짜·시간·확정, Google 지도 경로 링크
 - 회차별 비공개 보고서 업로드와 다운로드 (PDF/HWP/HWPX/DOC/DOCX/XLS/XLSX, 20MB 이하)
-- Pseudo User/Admin은 화면 왼쪽 아래에서 전환합니다. 가상 데이터 변경은 현재 브라우저에만 저장됩니다. Pseudo Admin의 이메일 테스트는 실제 메일을 보내며, 기본 설정에서는 GIA·IIA 테스트 주소로만 발송됩니다.
+- Pseudo User/Admin은 화면 왼쪽 아래에서 전환합니다. 가상 데이터 변경은 현재 브라우저에만 저장됩니다. Pseudo Admin과 Pseudo User 미리보기에서 테스트 메일을 실제로 보낼 수 있으며, 서버에서 GIA·IIA 테스트 주소만 허용합니다.
 
 ## Excel 가져오기 안내
 
