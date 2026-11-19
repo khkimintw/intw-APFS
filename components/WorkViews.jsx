@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { REPORT_STATUSES, sessionLabel } from '../modules/workflow';
+import { companyReportLabel, REPORT_STATUSES, sessionLabel } from '../modules/workflow';
 
 const tone = status => status === '제출 완료' ? 'green' : status === '미제출' ? 'amber' : status ? 'blue' : '';
 const Badge = ({ children, tone: t }) => <span className={`pill ${t || ''}`}>{children}</span>;
@@ -40,7 +40,7 @@ export function ReportsView({sessions,companies,peopleById,loading,error,onPick}
  <div className="report-template-grid">{REPORT_TEMPLATES.map(item=><article className="report-template-card" key={item.path}><div className="report-template-icon" aria-hidden="true">HWP</div><div className="report-template-copy"><h4>{item.title}</h4><p>{item.detail}</p><small>2026년 양식 · HWP</small></div><div className="report-template-actions"><a className="template-download" href={item.path} download={item.filename}>양식 다운로드</a></div></article>)}</div>
  </section>
  <div className="stat-grid view-stats">{REPORT_STATUSES.map(status=><button key={status} type="button" className={"stat-card stat-button "+(filter===status?'on':'')} aria-pressed={filter===status} onClick={()=>setFilter(filter===status?'전체':status)}><span>{status}</span><strong>{counts[status]}<small>회차</small></strong></button>)}</div>
- {!sessions.length?<Empty>등록된 상담 회차가 없어 보고 현황이 없습니다.</Empty>:<div className="table-wrap"><table className="view-table"><caption className="sr-only">회차별 보고 상태</caption><thead><tr><th>기업명</th><th>회차</th><th>회차 보고 상태</th><th>회사 보고 상태</th><th>담당 컨설턴트</th><th>상세</th></tr></thead><tbody>{rows.map(item=>{const company=byId[item.company_id];return <tr key={item.id}><td><b>{company.business_name}</b></td><td>{sessionLabel(item)}</td><td><Badge tone={tone(item.report_status||'미제출')}>{item.report_status||'미제출'}</Badge></td><td>{company.report_status?<Badge tone={tone(company.report_status)}>{company.report_status}</Badge>:'—'}</td><td>{consultant(company)}</td><td><button className="row-arrow" aria-label={company.business_name+' 상세 보기'} onClick={()=>onPick(company)}>→</button></td></tr>;})}</tbody></table>{!rows.length&&<Empty>선택한 상태의 회차가 없습니다.</Empty>}</div>}
+ {!sessions.length?<Empty>등록된 상담 회차가 없어 보고 현황이 없습니다.</Empty>:<div className="table-wrap"><table className="view-table"><caption className="sr-only">회차별 보고 상태</caption><thead><tr><th>기업명</th><th>회차</th><th>회차 보고 상태</th><th>회사 보고 상태</th><th>담당 컨설턴트</th><th>상세</th></tr></thead><tbody>{rows.map(item=>{const company=byId[item.company_id];return <tr key={item.id}><td><b>{company.business_name}</b></td><td>{sessionLabel(item)}</td><td><Badge tone={tone(item.report_status||'미제출')}>{item.report_status||'미제출'}</Badge></td><td>{company.report_status?<Badge tone={tone(company.report_status)}>{companyReportLabel(company.report_status)}</Badge>:'—'}</td><td>{consultant(company)}</td><td><button className="row-arrow" aria-label={company.business_name+' 상세 보기'} onClick={()=>onPick(company)}>→</button></td></tr>;})}</tbody></table>{!rows.length&&<Empty>선택한 상태의 회차가 없습니다.</Empty>}</div>}
  </Frame>;
 }
 

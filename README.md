@@ -32,7 +32,7 @@
 - IR 일정, 확정 상태와 월별 캘린더
 - 회차별 방문 날짜·시간·확정, Google 지도 경로 링크
 - 회차별 비공개 보고서 업로드와 다운로드 (PDF/HWP/HWPX/DOC/DOCX/XLS/XLSX, 20MB 이하)
-- Pseudo User/Admin은 화면 왼쪽 아래에서 전환합니다. 가상 데이터는 현재 브라우저에만 저장되며 실제 Supabase 데이터는 변경하지 않습니다.
+- Pseudo User/Admin은 화면 왼쪽 아래에서 전환합니다. 가상 데이터 변경은 현재 브라우저에만 저장됩니다. Pseudo Admin의 이메일 테스트는 실제 메일을 보내며, 기본 설정에서는 GIA·IIA 테스트 주소로만 발송됩니다.
 
 ## Excel 가져오기 안내
 
@@ -46,7 +46,7 @@
 
 Google 로그인은 Supabase Auth Google Provider와 Google Cloud OAuth Web Client 설정이 필요합니다. 앱의 공개 설정은 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY를 사용합니다. Service Role Key를 브라우저나 저장소에 추가하지 마세요.
 
-플랫폼 메일은 Vercel Production 환경에 서버 전용 `RESEND_API_KEY`와 `P1_EMAIL_FROM`을 설정해야 실제 발송됩니다. Resend에서 발신 도메인을 인증한 뒤 `P1_EMAIL_FROM`을 `농금원 업무 플랫폼 <p1@인증된도메인>` 형식으로 지정하고 재배포하세요. 이 값은 `NEXT_PUBLIC_` 접두사를 붙이면 안 되며 Git에 넣지 마세요. 회신 주소는 서버 전용 `P1_EMAIL_REPLY_TO`(기본값 `sasurae@intw.co.kr`)로 지정하며 Resend `reply_to`로 전달되고, 발송 본문 하단에 회신 안내 문구가 자동 추가됩니다. 발송이 확인되면 발송자(및 같은 이메일의 승인된 사이트 계정)에게 앱 내 알림(상단 종 아이콘)이 생성됩니다. 이를 위해 `supabase/migrations/20261119050000_p1_notifications.sql` 적용이 필요합니다. 메일 이벤트의 외부 전달/열람 추적은 현재 제공하지 않습니다. 앱에서는 발송 요청 접수/실패, 발송 번호, 시간, 본문을 보관합니다. Resend가 Message-ID를 반환한 경우 다음 메일은 `In-Reply-To`/`References` 헤더를 사용해 같은 대화로 연결합니다.
+플랫폼 메일은 Vercel Production 환경에 서버 전용 `RESEND_API_KEY`와 `P1_EMAIL_FROM`을 설정해야 실제 발송됩니다. Pseudo 테스트 메일의 추가 허용 수신 주소는 선택 환경변수 `P1_PSEUDO_TEST_RECIPIENTS`에 쉼표로 지정할 수 있습니다. 기본값은 `khkim.intw@gmail.com,kh.kim@intw.co.kr`입니다. Resend에서 발신 도메인을 인증한 뒤 `P1_EMAIL_FROM`을 `농금원 업무 플랫폼 <p1@인증된도메인>` 형식으로 지정하고 재배포하세요. 이 값은 `NEXT_PUBLIC_` 접두사를 붙이면 안 되며 Git에 넣지 마세요. 회신 주소는 서버 전용 `P1_EMAIL_REPLY_TO`(기본값 `sasurae@intw.co.kr`)로 지정하며 Resend `reply_to`로 전달되고, 발송 본문 하단에 회신 안내 문구가 자동 추가됩니다. 발송이 확인되면 발송자(및 같은 이메일의 승인된 사이트 계정)에게 앱 내 알림(상단 종 아이콘)이 생성됩니다. 이를 위해 `supabase/migrations/20261119050000_p1_notifications.sql` 적용이 필요합니다. 메일 이벤트의 외부 전달/열람 추적은 현재 제공하지 않습니다. 앱에서는 발송 요청 접수/실패, 발송 번호, 시간, 본문을 보관합니다. Resend가 Message-ID를 반환한 경우 다음 메일은 `In-Reply-To`/`References` 헤더를 사용해 같은 대화로 연결합니다.
 
 ## 개발
 

@@ -176,3 +176,24 @@ body{background:var(--fg-bg)}
 .session-template-link:hover{background:#e8f1f5;border-color:#789caf;color:#173d5d}
 @media(max-width:760px){.session-template-help{align-items:flex-start}.session-template-links{width:100%}.session-template-link{flex:1;justify-content:center}}
 .note-tooltip:hover:after,.note-tooltip:focus-visible:after{content:none!important;display:none!important}
+
+.company-name-button{display:block;max-width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left}
+.company-name-button b{cursor:pointer}
+.company-name-button:hover b,.company-name-button:focus-visible b{color:#245f7e;text-decoration:underline;text-underline-offset:3px}
+.abandon-button{border:1px solid #e3bf78!important;border-radius:6px;padding:7px 10px;background:#fff6e4!important;color:#805b1a!important;font-size:11px;font-weight:700}
+.abandon-button:hover:not(:disabled){background:#ffedc7!important;border-color:#d9a54d!important}
+.abandon-button:disabled{background:#f4f1ea!important;color:#827967!important}
+.pseudo-email-warning{background:#fff1d3!important;border:1px solid #e2bd69;color:#684e1a!important;line-height:1.65}
+.pseudo-email-warning b{color:#563c0b}
+
+.company-table{min-width:980px}
+.row-info-toggle{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:5px 8px;border:1px solid #cbd8e0;border-radius:6px;background:#f3f7f9;color:#29465d;font-size:10px;font-weight:700;white-space:nowrap}
+.row-info-toggle:hover,.row-info-toggle[aria-expanded=true]{border-color:#8caab9;background:#e8f1f5;color:#173d5d}
+.row-info-toggle span{font-size:14px;line-height:1}
+.company-extra-row>td{padding:0 12px 12px!important;background:#f6f9fa;border-bottom:1px solid #dce5e9}
+.company-extra-grid{display:grid;grid-template-columns:1.15fr 1.15fr .8fr;gap:10px;padding:10px 4px 2px}
+.company-extra-grid section{min-width:0;padding:10px 12px;border:1px solid #e1e9ed;border-radius:7px;background:#fff}
+.company-extra-grid strong{display:block;margin-bottom:5px;color:#526a78;font-size:10px}
+.company-extra-grid p{margin:0;color:#344b5a;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.company-extra-grid p b{font-size:11px}
+@media(max-width:760px){.company-table{min-width:900px}.company-extra-grid{grid-template-columns:1fr}.company-extra-row>td{padding:0 8px 8px!important}}

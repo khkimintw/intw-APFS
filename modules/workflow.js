@@ -11,3 +11,10 @@ export function sessionError(candidate, existing = []) {
   return '';
 }
 export function sessionLabel(item) { return `${item.kind === 'diagnosis' ? '진단' : '컨설팅'} ${item.round_number}회`; }
+
+export function companyReportLabel(value) {
+  const raw = String(value ?? '').trim();
+  const match = raw.match(/^(?:보고서\s*작성\s*)?(\d+)\s*회?$/);
+  if (match) return `보고서 작성 ${match[1]}회`;
+  return raw || '미기재';
+}
