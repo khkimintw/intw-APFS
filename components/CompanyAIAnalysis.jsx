@@ -48,7 +48,7 @@ export default function CompanyAIAnalysis({ company, session, profile }) {
     if(pseudo){try{setDocuments(JSON.parse(sessionStorage.getItem('apfs-pseudo-company-documents-'+company.id)||'[]'));}catch{setDocuments([]);}setLoading(false);return;}
     setLoading(true);try{setDocuments(await listCompanyDocuments(company.id));setMessage('');}catch(e){setMessage(e.message);}finally{setLoading(false);}
   },[company?.id,pseudo]);
-  useEffect(()=>{refresh();},[refresh]);
+  useEffect(()=>{refresh();const onDocumentsUpdated=event=>{if(event.detail?.companyId===company?.id)refresh();};window.addEventListener('apfs-company-documents-updated',onDocumentsUpdated);return()=>window.removeEventListener('apfs-company-documents-updated',onDocumentsUpdated);},[refresh,company?.id]);
   function toggle(path){setSelected(items=>items.includes(path)?items.filter(item=>item!==path):items.concat(path).slice(-5));setReport(null);}
   async function analyze(){
     if(!selected.length||running)return;
@@ -60,8 +60,8 @@ export default function CompanyAIAnalysis({ company, session, profile }) {
     finally{setRunning(false);}
   }
   const safeBase=String(company.business_name||'company').replace(/[\\/:*?"<>|]/g,'_').slice(0,60);
-  return <section className="surface company-ai-analysis" aria-labelledby="company-ai-title">
-    <div className="section-head"><div><span className="eyebrow">SASURAE AI · REVIEW ASSISTANT</span><h2 id="company-ai-title">사업계획서·IR AI 분석</h2><p>설문 응답을 반영한 5개 평가축과 25개 지표(각 1~4점)로 핵심, 근거, 위험 요인과 보완 제안을 정리합니다.</p></div><span className="pill status">설문 반영 · {SURVEY_RESPONSE_COUNT}명</span></div>
+  return <section id="sasurae-ai-analysis" className="surface company-ai-analysis" aria-labelledby="company-ai-title">
+    <div className="section-head"><div><span className="eyebrow">SASURAE AI · REVIEW ASSISTANT</span><h2 id="company-ai-title">사업계획서·IR AI 분석</h2><p>설문 응답을 반영한 5개 평가축과 25개 지표(각 1~4점)로 핵심, 근거, 위험 요인과 보완 제안을 정리합니다.</p><span className="ai-analysis-flow">자료함에 IR 자료 업로드 → 분석할 파일 선택 → 분석 결과 확인·다운로드</span></div><span className="pill status">설문 반영 · {SURVEY_RESPONSE_COUNT}명</span></div>
     <details className="ai-example-details">
       <summary>공개 IR 자료로 보는 분석 예시</summary>
       <div className="ai-example-body">

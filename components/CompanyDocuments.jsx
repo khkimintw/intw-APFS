@@ -49,14 +49,14 @@ export default function CompanyDocuments({ company, session, profile }) {
         validateCompanyDocument(file);
         if (pseudo) {
           const next = documents.concat([{ id: crypto.randomUUID(), name: file.name, size: file.size, category, created_at: new Date().toISOString(), pseudo: true }]);
-          sessionStorage.setItem(pseudoKey, JSON.stringify(next)); setDocuments(next);
+          sessionStorage.setItem(pseudoKey, JSON.stringify(next)); setDocuments(next); window.dispatchEvent(new CustomEvent('apfs-company-documents-updated',{detail:{companyId:company.id}}));
           setMessage('가상 자료 ' + (index + 1) + '/' + files.length + '개를 기록했습니다. 파일 내용은 저장소로 보내지 않았습니다.');
         } else {
           await uploadCompanyDocument(company.id, category, file);
           setMessage('자료 ' + (index + 1) + '/' + files.length + '개 저장 중…');
         }
       }
-      if (!pseudo) { await refresh(); setMessage('자료 ' + files.length + '개를 저장했습니다.'); }
+      if (!pseudo) { await refresh(); window.dispatchEvent(new CustomEvent('apfs-company-documents-updated',{detail:{companyId:company.id}})); setMessage('자료 ' + files.length + '개를 저장했습니다.'); }
     } catch (error) { setMessage(error.message); if (!pseudo) await refresh(); }
     finally { setBusy(false); }
   }
