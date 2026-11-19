@@ -215,6 +215,15 @@ export default function Workspace({ session, profile: actualProfile, onSignOut, 
     }, '경영체 업무정보를 저장했습니다.');
     if (ok) setSection('detail');
   }
+  async function quickAssignRegion(company, consultantId) {
+    if (!admin || !consultantId || company.status === '포기') return;
+    const consultant = peopleById[consultantId];
+    if (!window.confirm(company.business_name+'을(를) '+(consultant?.display_name || '선택한 컨설턴트')+'에게 배정할까요? 주소·기존 지역·담당량 기준 추천이며, 이동 거리를 보장하지 않습니다.')) return;
+    await mutate(async () => {
+      await apiRequest(serviceSession, '/companies/'+company.id, { method: 'PATCH', body: { assigned_consultant_id: consultantId } });
+      await refresh();
+    }, (consultant?.display_name || '컨설턴트')+'에게 배정했습니다.');
+  }
   async function abandonCompany(company) {
     if (!admin) return;
     const restoring=company.status==='포기';
@@ -317,7 +326,7 @@ export default function Workspace({ session, profile: actualProfile, onSignOut, 
       {section === 'detail' && !selected && <section className="surface empty-state">조회 가능한 경영체가 없습니다.</section>}
       {section === 'import' && (admin || pseudoMode === 'user') && <ImportPanel session={serviceSession} companies={companies} onDone={refresh}/>}
       {section === 'ir' && admin && <IRCalendarView companies={companies} month={irMonth} onMonthChange={setIrMonth} onPick={pick}/>}
-      {section === 'assign' && <AssignmentView sessions={allSessions} companies={companies} peopleById={peopleById} loading={sessionsBusy || busy} error={sessionsError} onPick={pick}/>}
+      {section === 'assign' && <AssignmentView sessions={allSessions} companies={companies} peopleById={peopleById} people={people} admin={admin} onAssign={quickAssignRegion} mutationBusy={mutationBusy} loading={sessionsBusy || busy} error={sessionsError} onPick={pick}/>}
       {section === 'reports' && <ReportsView sessions={allSessions} companies={companies} peopleById={peopleById} loading={sessionsBusy || busy} error={sessionsError} onPick={pick}/>}
       {section === 'review' && <ReviewView sessions={allSessions} companies={companies} peopleById={peopleById} loading={sessionsBusy || busy} error={sessionsError} onPick={pick}/>}
       {section === 'settlement' && <SettlementView sessions={allSessions} companies={companies} loading={sessionsBusy || busy} error={sessionsError} onPick={pick}/>}
