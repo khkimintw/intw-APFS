@@ -5,3 +5,5 @@ export const GET = handleApi;
 export const POST = handleApi;
 export const PATCH = handleApi;
 export const DELETE = handleApi;
+
+export const maxDuration = 60;
