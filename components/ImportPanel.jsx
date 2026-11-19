@@ -26,17 +26,15 @@ async function readMatrix(file) {
     try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch { text = new TextDecoder('euc-kr').decode(buffer); }
     return parseCsv(text);
   }
-  const ExcelJS = (await import('exceljs')).default;
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
-  const sheet = workbook.worksheets[0];
+  const XLSX = await import('xlsx');
+  const codepages = await import('xlsx/dist/cpexcel.full.mjs');
+  XLSX.set_cptable(codepages);
+  const workbook = XLSX.read(buffer, { type:'array', password:'2026', cellDates:true, sheetRows:IMPORT_LIMITS.maxRows + 51 });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
   if (!sheet) throw new Error('시트를 찾지 못했습니다.');
-  const matrix = [], width = Math.min(sheet.columnCount || 0, 60);
-  sheet.eachRow({ includeEmpty: false }, (row, number) => {
-    if (number > IMPORT_LIMITS.maxRows + 50) return; // far beyond the limit: preview will reject the file
-    matrix.push(Array.from({ length: width }, (_, i) => cellText(row.getCell(i + 1).value)));
-  });
-  return matrix;
+  return XLSX.utils.sheet_to_json(sheet, { header:1, raw:false, defval:'', blankrows:false })
+    .slice(0, IMPORT_LIMITS.maxRows + 51)
+    .map(row => row.slice(0,60).map(cellText));
 }
 
 export default function ImportPanel({ session, companies, onDone }) {
@@ -63,14 +61,18 @@ export default function ImportPanel({ session, companies, onDone }) {
     event.target.value = '';
     if (!file) return;
     setError(''); setResult(null);
-    if (!/\.(xlsx|csv)$/i.test(file.name)) { setError('.xlsx 또는 .csv 파일만 올릴 수 있습니다. (.xls는 지원하지 않습니다)'); return; }
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { setError('.xls, .xlsx 또는 .csv 파일만 올릴 수 있습니다.'); return; }
     if (file.size > IMPORT_LIMITS.maxFileBytes) { setError('파일이 너무 큽니다. 5MB 이하로 줄여 주세요.'); return; }
     setState({ phase: 'reading', name: file.name });
     try {
       const preview = buildImportPreview(await readMatrix(file), companies);
       if (preview.error) { setError(preview.error); setState(preview.mapped ? { phase: 'idle', mapped: preview.mapped, ignored: preview.ignored } : { phase: 'idle' }); return; }
       setState({ phase: 'preview', name: file.name, ...preview });
-    } catch { setError('파일을 읽지 못했습니다. 형식과 암호 설정을 확인해 주세요.'); setState({ phase: 'idle' }); }
+    } catch (problem) {
+      const detail=String(problem?.message||'').toLowerCase();
+      setError(/password|encrypt|decrypt|encryption|cfb|unsupported/.test(detail) ? '파일 열기 암호 2026으로 읽기를 시도했지만 이 Excel 암호화 방식은 지원되지 않습니다. Excel에서 암호를 입력해 파일을 연 뒤 암호 보호를 해제하고 XLSX 또는 CSV로 다시 저장해 주세요.' : '파일을 읽지 못했습니다. 파일 형식과 첫 번째 시트의 머리글을 확인해 주세요.');
+      setState({ phase: 'idle' });
+    }
   }
 
   async function run() {
@@ -96,14 +98,14 @@ export default function ImportPanel({ session, companies, onDone }) {
   const preview = state.phase === 'preview' || state.phase === 'importing';
   const shown = preview ? state.items.slice(0, 20) : [];
   return <section className="surface import-card" aria-busy={busy}>
-    <div className="section-head"><div><h2>엑셀 업로드</h2><p>.xlsx / .csv 파일에서 기업 정보를 일괄 등록합니다. 비밀번호로 잠긴 Excel은 현재 자동 해제를 지원하지 않습니다. 원본 파일을 열어 보호를 해제한 뒤 등록해 주세요. 최대 {IMPORT_LIMITS.maxRows}행 · 5MB.</p></div></div>
+    <div className="section-head"><div><h2>엑셀 업로드</h2><p>.xls / .xlsx / .csv 파일에서 기업 정보를 일괄 등록합니다. 파일 열기 암호 2026을 자동으로 시도하고, 시트 편집 보호는 읽기에 영향을 주지 않습니다. 최대 {IMPORT_LIMITS.maxRows}행 · 5MB.</p></div></div>
     <div className="alert info">관리자 전용 가져오기입니다. 경영체·대표자·담당자·주소·특이사항을 역할별 접근제어가 적용된 영역에 저장합니다. 주민등록번호·계좌번호는 가져오지 않습니다. 기업명 또는 사업자번호가 이미 있으면 중복으로 건너뜁니다.</div>
     <section className="import-example" aria-labelledby="import-example-title">
       <div className="import-example-head"><div><h3 id="import-example-title">예시 데이터 미리보기</h3><p>아래 표는 형식 이해를 위한 가상 예시이며 실제 경영체 목록에 등록되지 않습니다.</p></div><button type="button" className="ghost-button" onClick={downloadTemplate}>빈 CSV 양식 다운로드</button></div>
       <div className="table-wrap"><table className="import-table sample-import-table"><caption className="sr-only">등록되지 않는 가상 예시 데이터</caption><thead><tr><th>기업명</th><th>사업자번호</th><th>설립연도</th><th>구분</th><th>상태</th><th>접수주차</th></tr></thead><tbody>{EXAMPLE_ROWS.map(row => <tr key={row.business_name}><td><b>{row.business_name}</b></td><td>{row.business_registration_number}</td><td>{row.founded_year}</td><td>{row.ir_direct ? 'IR 직행' : '컨설팅'}</td><td>{row.status}</td><td>{row.intake_date}</td></tr>)}</tbody></table></div>
       <p className="fine-print">CSV 양식은 머리글만 있는 빈 파일입니다. 예시 행은 가상 안내용으로만 화면에 표시합니다.</p>
     </section>
-    <label className="upload-drop"><input type="file" accept=".xlsx,.csv" onChange={choose} disabled={busy}/><span>파일 선택 (.xlsx, .csv)</span><small>첫 번째 시트의 첫 행을 머리글로 읽습니다.</small></label>
+    <label className="upload-drop"><input type="file" accept=".xls,.xlsx,.csv" onChange={choose} disabled={busy}/><span>파일 선택 (.xls, .xlsx, .csv)</span><small>첫 번째 시트의 첫 행을 머리글로 읽습니다. 암호화된 XLSX 중 일부는 Excel에서 보호 해제 후 올려야 합니다.</small></label>
     {state.phase === 'reading' && <div className="progress-box" role="status"><progress aria-label="파일 읽는 중"/><span>{state.name} 읽는 중…</span></div>}
     {error && <div className="alert error" role="alert">{error}</div>}
     {error && state.mapped && <p className="fine-print">인식한 열: {state.mapped.map(item => FIELD_LABELS[item.field]).join(', ') || '없음'}</p>}
