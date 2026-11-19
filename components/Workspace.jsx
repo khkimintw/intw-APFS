@@ -30,13 +30,13 @@ export default function Workspace({ session, profile: actualProfile, onSignOut, 
   const directOnly = categoryFilter === 'ir';
   const [allSessions, setAllSessions] = useState([]), [sessionsBusy, setSessionsBusy] = useState(false), [sessionsError, setSessionsError] = useState('');
   const [statusFilter, setStatusFilter] = useState(uiSeed.statusFilter || '전체'), [consultantFilter, setConsultantFilter] = useState(uiSeed.consultantFilter || '전체'), [intakeFilter, setIntakeFilter] = useState(uiSeed.intakeFilter || '전체');
-  useEffect(() => { try { sessionStorage.setItem(`apfs-ui-${profile.id}`, JSON.stringify({section,selectedId,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir})); } catch {} }, [profile.id,section,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir]);
   const [busy, setBusy] = useState(true), [mutationBusy, setMutationBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
   const [error, setError] = useState(''), [toast, setToast] = useState(''), [auditMessage, setAuditMessage] = useState('');
   const [editing, setEditing] = useState(null), [form, setForm] = useState(blank);
   const [emailMessages,setEmailMessages]=useState([]),[emailComposeOpen,setEmailComposeOpen]=useState(false),[emailSending,setEmailSending]=useState(false),[notifyKey,setNotifyKey]=useState(0),[emailDraft,setEmailDraft]=useState({recipient:'',subject:'',body:'',replyToPrevious:true});
   const [sessionForm, setSessionForm] = useState({ kind: 'consulting', round_number: 1, scheduled_on: '', scheduled_time:'' });
   const [pageSize, setPageSize] = useState(uiSeed.pageSize === 'all' ? 'all' : [10,20,30,40,50].includes(Number(uiSeed.pageSize)) ? Number(uiSeed.pageSize) : 10), [page, setPage] = useState(uiSeed.page || 1), [sortKey, setSortKey] = useState(['name','founded','status','intake'].includes(uiSeed.sortKey) ? uiSeed.sortKey : 'name'), [sortDir, setSortDir] = useState(uiSeed.sortDir === 'desc' ? 'desc' : 'asc');
+  useEffect(() => { try { sessionStorage.setItem(`apfs-ui-${profile.id}`, JSON.stringify({section,selectedId,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir})); } catch {} }, [profile.id,section,search,categoryFilter,statusFilter,consultantFilter,intakeFilter,pageSize,page,sortKey,sortDir]);
   const [rangeStart, setRangeStart] = useState(''), [rangeEnd, setRangeEnd] = useState('');
   const [irMonth,setIrMonth]=useState(()=>new Date().toISOString().slice(0,7));
   const [exportState, setExportState] = useState(null), [exportError, setExportError] = useState('');
