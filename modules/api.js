@@ -31,3 +31,7 @@ export async function apiRequest(session, path, options = {}) {
 export async function sendPseudoTestEmail(session, body) {
   return liveRequest(session, '/pseudo-emails', { method: 'POST', body });
 }
+
+export function requestPseudoAnalysis(session, body) {
+  return liveRequest(session, '/pseudo-ai-analysis', { method: 'POST', body });
+}
