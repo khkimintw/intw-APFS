@@ -1,3 +1,5 @@
+const REPORT_FONT = 'NanumGothic';
+const WORD_FONT = { ascii: REPORT_FONT, hAnsi: REPORT_FONT, eastAsia: REPORT_FONT, cs: REPORT_FONT };
 const TITLE = '사업계획서 및 IR 검토 참고 보고서';
 
 function reportSections(report) {
@@ -27,21 +29,31 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+async function loadReportFont() {
+  const response = await fetch('/fonts/NanumGothic-Regular.ttf');
+  if (!response.ok) throw new Error('보고서 글꼴을 불러오지 못했습니다.');
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 export async function downloadWordReport(report, filename) {
-  const { Document, HeadingLevel, Packer, Paragraph, TextRun } = await import('docx');
-  const children = [new Paragraph({ text: TITLE, heading: HeadingLevel.TITLE })];
+  const [{ Document, HeadingLevel, Packer, Paragraph, TextRun }, font] = await Promise.all([
+    import('docx'), loadReportFont(),
+  ]);
+  const headingRun = (text, size) => new TextRun({ text, font: WORD_FONT, size, bold: false, color: '153854' });
+  const children = [new Paragraph({ children: [headingRun(TITLE, 38)], heading: HeadingLevel.TITLE })];
   for (const [heading, paragraphs] of reportSections(report)) {
-    if (heading) children.push(new Paragraph({ text: heading, heading: HeadingLevel.HEADING_1, keepNext: true }));
+    if (heading) children.push(new Paragraph({ children: [headingRun(heading, 26)], heading: HeadingLevel.HEADING_1, keepNext: true }));
     for (const text of paragraphs.length ? paragraphs : ['확인된 내용 없음']) {
       children.push(new Paragraph({
-        children: text.split('\n').map((line, index) => new TextRun({ text: line, break: index ? 1 : 0 })),
+        children: text.split('\n').map((line, index) => new TextRun({ text: line, font: WORD_FONT, break: index ? 1 : 0 })),
       }));
     }
   }
   const doc = new Document({
     title: TITLE,
+    fonts: [{ name: REPORT_FONT, data: font }],
     styles: { default: { document: {
-      run: { font: { ascii: 'Calibri', eastAsia: '맑은 고딕' }, size: 22 },
+      run: { font: WORD_FONT, size: 22 },
       paragraph: { spacing: { after: 130, line: 300 } },
     } } },
     sections: [{ properties: { page: { size: { width: 11906, height: 16838 } } }, children }],
@@ -50,19 +62,17 @@ export async function downloadWordReport(report, filename) {
 }
 
 export async function downloadPdfReport(report, filename) {
-  const [{ jsPDF }, font] = await Promise.all([
-    import('jspdf'), fetch('/fonts/NanumGothic-Regular.ttf'),
+  const [{ jsPDF }, bytes] = await Promise.all([
+    import('jspdf'), loadReportFont(),
   ]);
-  if (!font.ok) throw new Error('PDF 글꼴을 불러오지 못했습니다.');
-  const bytes = new Uint8Array(await font.arrayBuffer());
   let binary = '';
   for (let index = 0; index < bytes.length; index += 8192) {
     binary += String.fromCharCode(...bytes.subarray(index, index + 8192));
   }
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', putOnlyUsedFonts: true });
   pdf.addFileToVFS('NanumGothic.ttf', btoa(binary));
-  pdf.addFont('NanumGothic.ttf', 'NanumGothic', 'normal');
-  pdf.setFont('NanumGothic');
+  pdf.addFont('NanumGothic.ttf', REPORT_FONT, 'normal');
+  pdf.setFont(REPORT_FONT);
   pdf.setProperties({ title: TITLE });
   let y = 22;
   function newPage() {
